@@ -1,6 +1,6 @@
 import { Box, VStack, Heading, Text, IconButton, Icon, Group, Link, Center } from "@chakra-ui/react";
 import { SlLogout, SlInfo  } from "react-icons/sl";
-import { Tooltip } from "../ui/tooltip"
+import { Tooltip } from "../../components/ui/tooltip"
 
 const AccountStatus = () => {
   return (

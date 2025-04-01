@@ -1,8 +1,8 @@
 
 import { Routes, Route } from "react-router-dom";
-import Login from "../components/auth/Login";
-import Register from "../components/auth/Register";
-import AccountStatus from "../components/auth/AccountStatus";
+import Login from "../pages/auth/Login";
+import Register from "../pages/auth/Register";
+import AccountStatus from "../pages/auth/AccountStatus";
 
 
 const AppRoutes = () => {

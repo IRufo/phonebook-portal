@@ -2,7 +2,7 @@ import { Box, Button, Field, Fieldset, Input, Stack, VStack, Heading } from "@ch
 import {
   PasswordInput,
   PasswordStrengthMeter,
-} from "../ui/password-input"
+} from "../../components/ui/password-input"
 import { passwordStrength } from 'check-password-strength'
 import { useState } from "react";
 import { registerUser } from "../../services/authService";
