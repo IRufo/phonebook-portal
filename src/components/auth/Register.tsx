@@ -1,127 +1,83 @@
-import { useState } from "react";
+import { Box, Button, Field, Fieldset, Input, Stack, VStack, Heading } from "@chakra-ui/react";
 import {
-  Box,
-  Button,
-  // FormControl,
-  // FormLabel,
-  Input,
-  Stack,
-  // useToast,
-  Heading,
-} from "@chakra-ui/react";
+  PasswordInput,
+  PasswordStrengthMeter,
+} from "../ui/password-input"
+import { passwordStrength } from 'check-password-strength'
+
+const passStrengthMap =  {
+  'Too weak': 1,
+  'Weak': 2,
+  'Medium': 3,
+  'Strong': 4
+}
 
 const Register = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  // const toast = useToast();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Basic validation
-    if (formData.password !== formData.confirmPassword) {
-      // toast({
-      //   title: "Passwords do not match.",
-      //   status: "error",
-      //   duration: 3000,
-      // });
-      return;
-    }
-
-    setIsLoading(true);
-
-    // Simulate an API call
-    setTimeout(() => {
-      // toast({
-      //   title: "Registration successful.",
-      //   status: "success",
-      //   duration: 3000,
-      // });
-      setIsLoading(false);
-    }, 2000);
-  };
-
   return (
-    <Box
-      width="100%"
-      maxWidth="400px"
-      mx="auto"
-      mt="100px"
-      p={6}
-      borderRadius="md"
-      boxShadow="lg"
-    >
-      <Heading as="h2" size="lg" textAlign="center" mb={6}>
-        Register
-      </Heading>
-      <form onSubmit={handleSubmit}>
-        <Stack >
-          {/* <FormControl id="name" isRequired>
-            <FormLabel>Name</FormLabel>
-            <Input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter your name"
-            />
-          </FormControl>
+    <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <Box p={6} boxShadow="lg" borderRadius="md" width="400px">
+          <Heading mb={4} textAlign="center">Sign up</Heading>
+          
+          <Fieldset.Root invalid>
+            {/* <Fieldset.Legend>Sign up with phonebook hub</Fieldset.Legend> */}
+            
+            <Fieldset.Content>
+              <Field.Root required>     
+                <Field.Label>
+                  First name
+                  <Field.RequiredIndicator />
+                </Field.Label>
+                <Input placeholder="John"/> 
+                <Field.ErrorText>First name is required</Field.ErrorText>
+              </Field.Root>
 
-          <FormControl id="email" isRequired>
-            <FormLabel>Email</FormLabel>
-            <Input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-            />
-          </FormControl>
+              <Field.Root required>
+                <Field.Label>
+                  Last name
+                  <Field.RequiredIndicator />
+                </Field.Label>
+                <Input placeholder="Due"/> 
+                <Field.ErrorText>Last name is required</Field.ErrorText>
+              </Field.Root>
 
-          <FormControl id="password" isRequired>
-            <FormLabel>Password</FormLabel>
-            <Input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-            />
-          </FormControl>
+              <Field.Root required invalid>
+                <Field.Label>
+                  Email
+                  <Field.RequiredIndicator />
+                </Field.Label>
+                <Input placeholder="me@example.com"/> 
+                <Field.ErrorText>Email is required</Field.ErrorText>
+              </Field.Root>
 
-          <FormControl id="confirmPassword" isRequired>
-            <FormLabel>Confirm Password</FormLabel>
-            <Input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
-            />
-          </FormControl> */}
+              <Field.Root required>
+                <Field.Label>
+                  Password
+                  <Field.RequiredIndicator />
+                </Field.Label>
+                <Stack width="100%">
+                  <PasswordInput />
+                  <PasswordStrengthMeter value={ (passStrengthMap as any)[passwordStrength('asdfasdf').value] } />
+                </Stack>
+                <Field.ErrorText >Incorrect password</Field.ErrorText>
+              </Field.Root>
 
-          <Button
-            colorScheme="blue"
-            width="100%"
-            type="submit"
-          >
-            Register
-          </Button>
-        </Stack>
-      </form>
+              <Field.Root required>
+                <Field.Label>
+                  Confirm password
+                  <Field.RequiredIndicator />
+                </Field.Label>
+                <PasswordInput />
+                <Field.ErrorText >Incorrect password</Field.ErrorText>
+              </Field.Root>
+            </Fieldset.Content>
+
+            <Fieldset.ErrorText>
+              Some fields are invalid. Please check them.
+            </Fieldset.ErrorText>
+
+            <Button colorScheme="blue" width="100%">Register</Button>
+          </Fieldset.Root>
+        </Box>
     </Box>
   );
 };
