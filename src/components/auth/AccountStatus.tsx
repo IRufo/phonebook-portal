@@ -3,7 +3,6 @@ import { SlLogout, SlInfo  } from "react-icons/sl";
 import { Tooltip } from "../ui/tooltip"
 
 const AccountStatus = () => {
-
   return (
     <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
         <Box p={6} boxShadow="lg" borderRadius="md" width="400px">
@@ -14,7 +13,7 @@ const AccountStatus = () => {
             </Center>
             <Heading mb={4} textAlign="center">Waiting Approval</Heading>
             <VStack>
-                <Text textStyle="sm">You successfully created your account. You can use it after the approval of Phonebook Manangement System's admin. Please kindly wait. Thank you. <b>See you!</b></Text>
+                <Text textStyle="sm">Account created successfully! Access will be granted upon admin approval. Please wait. Thank you.<b>See you!</b></Text>
             </VStack>
             <br/>   
             <Group>

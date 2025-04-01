@@ -4,7 +4,7 @@ import { loginFields } from "./config";
 import { TLogin } from "./types";
 import { loginUser } from "../../services/authService";
 import { setCookie } from "../../utils/cacheCookie";
-import withAuthRedirect from "../../HOC/withAuth";
+import withAuthRedirect from "../../HOC/withAuthRedirect";
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
