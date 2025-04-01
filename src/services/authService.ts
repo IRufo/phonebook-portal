@@ -10,6 +10,7 @@ interface ILoginPayload {
 interface ILoginResponse {
   success: boolean;
   token: string;
+  message: string
 }
 
 interface IRegisterPayload {
@@ -29,7 +30,10 @@ export const loginUser = async (payload: ILoginPayload): Promise<ILoginResponse>
   try {
     const response = await axios.post(`${API_URL}/login`, payload);
     return response.data;
-  } catch (error) {
+  }catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      return error.response?.data; 
+    }
     throw new Error('Login failed');
   }
 };
@@ -38,7 +42,10 @@ export const registerUser = async (payload: IRegisterPayload): Promise<IRegister
   try {
     const response = await axios.post(`${API_URL}/register`, payload);
     return response.data;
-  } catch (error) {
+  }catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      return error.response?.data; 
+    }
     throw new Error('Registration failed');
   }
 };
