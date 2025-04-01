@@ -1,4 +1,4 @@
-import { Box, Button, Field, Fieldset, Input, Stack, VStack, Heading } from "@chakra-ui/react";
+import { Box, Button, Field, Fieldset, Input, Stack, Heading } from "@chakra-ui/react";
 import {
   PasswordInput,
   PasswordStrengthMeter,
@@ -10,7 +10,6 @@ import { useNavigate } from 'react-router-dom';
 import { registerFields } from "./config";
 import { IErrorRegister, TRegister } from "./types";
 import { validateRequiredFields } from "../../utils/requiredFieldsValidation";
-
 
 const passStrengthMap =  {
   'Too weak': 1,

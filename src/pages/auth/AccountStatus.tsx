@@ -1,4 +1,4 @@
-import { Box, VStack, Heading, Text, IconButton, Icon, Group, Link, Center } from "@chakra-ui/react";
+import { Box, VStack, Heading, Text, Icon, Center } from "@chakra-ui/react";
 import { SlInfo  } from "react-icons/sl";
 
 const AccountStatus = () => {
