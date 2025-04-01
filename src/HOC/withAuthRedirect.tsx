@@ -1,19 +1,21 @@
-import { getCookie } from "../utils/cacheCookie";
-import React from 'react';
+import React from "react";
 import { Navigate } from "react-router-dom";
+import { useAuth } from "../contexts/authContext"; // Your custom auth context
 
-const withAuthRedirect = (WrappedComponent: React.ComponentType) => {
-  const AuthRedirectHOC = (props: any) => {
-    const token = getCookie('token'); 
+const withProtectedRoute = (WrappedComponent: React.ComponentType) => {
+  return () => {
+    const { user } = useAuth(); // Get authentication status from context
 
-    if (token) {
-     return <Navigate to="/dashboard" replace />
+    if (user === undefined) {
+      return <div>Loading...</div>; // Show loading while checking user status
     }
 
-    return <WrappedComponent {...props} />;
-  };
+    if (user === null) {
+      return <Navigate to="/" replace />; // Redirect to login if not authenticated
+    }
 
-  return AuthRedirectHOC;
+    return <WrappedComponent />;
+  };
 };
 
-export default withAuthRedirect;
+export default withProtectedRoute;

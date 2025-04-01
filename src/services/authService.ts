@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getCookie } from '../utils/cacheCookie';
 
 const API_URL = `${process.env.REACT_APP_API_URL}/auth`;
 
@@ -13,16 +14,17 @@ interface ILoginResponse {
   message: string
 }
 
-interface IRegisterPayload {
-  first_name: string;
-  last_name: string;
+export interface IUser {
+  id: string;
+  name: string;
   email: string;
-  password: string;
+  role: "User" | "Admin" | 'Super Admin';
 }
 
 interface IRegisterResponse {
   success: boolean;
   message: string;
+  data: IUser
 }
 
 
@@ -38,7 +40,7 @@ export const loginUser = async (payload: ILoginPayload): Promise<ILoginResponse>
   }
 };
 
-export const registerUser = async (payload: IRegisterPayload): Promise<IRegisterResponse> => {
+export const registerUser = async (payload: IUser): Promise<IRegisterResponse> => {
   try {
     const response = await axios.post(`${API_URL}/register`, payload);
     return response.data;
@@ -49,4 +51,22 @@ export const registerUser = async (payload: IRegisterPayload): Promise<IRegister
     throw new Error('Registration failed');
   }
 };
+
+export const verifyToken = async (): Promise<IRegisterResponse> => {
+  try {
+    const token = getCookie('token')
+    const response = await axios.get(`${API_URL}/verify-token`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  }catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      return error.response?.data; 
+    }
+    throw new Error('Registration failed');
+  }
+};
+
 
