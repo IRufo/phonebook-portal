@@ -8,7 +8,8 @@ import { useState } from "react";
 import { registerUser } from "../../services/authService";
 import { useNavigate } from 'react-router-dom';
 import { registerFields } from "./config";
-import { TRegister } from "./types";
+import { IErrorRegister, TRegister } from "./types";
+import { validateRequiredFields } from "../../utils/requiredFieldsValidation";
 
 
 const passStrengthMap =  {
@@ -21,25 +22,44 @@ const passStrengthMap =  {
 const Register = () => {
   const [data, setData] = useState({ email: '', first_name: '', last_name: '', password: '', confirm_password: '' });
 
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<IErrorRegister | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
+
 
   const navigate = useNavigate();
 
   const handleChange = (key: string, value: string) => {
     setData((prev) => ({ ...prev, [key]: value }));
+    setError((prev) => {
+      if (prev) {
+        const { [key as TRegister]: ommitted, ...rest } = prev;
+        return rest;
+      }
+      return null;
+    });
   };
 
   const handleRegister = async () => {
     try {
+      const _error = validateRequiredFields(data, ['first_name', 'last_name', 'email', 'password', 'confirm_password'])
+      if(Object.entries(_error).length) {
+        setError(_error)
+        return
+      }
+      if(data.password !== data.confirm_password) {
+        setError({
+          confirm_password: `Password didn't match.`
+        })
+        return
+      }  
       const response = await registerUser(data);
-      console.log('Login successful:', response);
       if (response.success) {
         navigate('/account-status');
       } else {
         alert("Invalid login credentials.");
       }
     } catch (err) {
-      setError('Invalid credentials, please try again.');
+      setServerError('Invalid credentials, please try again.');
     }
   };
 
@@ -51,7 +71,7 @@ const Register = () => {
             <Fieldset.Content>
               {
                 registerFields.map(({key, label, required, type}) => (
-                  <Field.Root required>
+                  <Field.Root required = {required} invalid = {!!error?.[key as TRegister]}>
                   <Field.Label>
                     {label}
                     <Field.RequiredIndicator />
@@ -64,12 +84,11 @@ const Register = () => {
                     type={type}
                   />
                   <Field.HelperText />
-                  <Field.ErrorText></Field.ErrorText>
+                  <Field.ErrorText>{error?.[key as TRegister]}</Field.ErrorText>
                 </Field.Root>
                 ))
               }
-
-              <Field.Root required>
+              <Field.Root required invalid = {!!error?.['password']}>
                 <Field.Label>
                   Password
                   <Field.RequiredIndicator />
@@ -83,10 +102,10 @@ const Register = () => {
                   />
                   <PasswordStrengthMeter value={ (passStrengthMap as any)[passwordStrength(data['password']).value] } />
                 </Stack>
-                <Field.ErrorText >Incorrect password</Field.ErrorText>
+                <Field.ErrorText >{error?.['password']}</Field.ErrorText>
               </Field.Root>
 
-              <Field.Root required>
+              <Field.Root required invalid = {!!error?.['confirm_password']}>
                 <Field.Label>
                   Confirm password
                   <Field.RequiredIndicator />
@@ -97,7 +116,7 @@ const Register = () => {
                   }}
                   value={data['confirm_password']}
                 />
-                <Field.ErrorText >Incorrect password</Field.ErrorText>
+                <Field.ErrorText >{error?.['confirm_password']}</Field.ErrorText>
               </Field.Root>
             </Fieldset.Content>
             {/* <Fieldset.ErrorText>
