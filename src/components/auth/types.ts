@@ -1,0 +1,1 @@
+export type TLogin = 'email' | 'password'

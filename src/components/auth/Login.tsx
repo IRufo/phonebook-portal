@@ -1,40 +1,61 @@
 import { Box, Button, Field , Input, VStack, Heading } from "@chakra-ui/react";
 import { useState } from "react";
+import { loginFields } from "./config";
+import { TLogin } from "./types";
+import { loginUser } from "../../services/authService";
+import { setCookie } from "../../utils/cacheCookie";
+import withAuthRedirect from "../../HOC/withAuth";
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [data, setData] = useState({ email: '', password: '' });
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = () => {
-    console.log("Logging in with:", { email, password });
+  const navigate = useNavigate();
+
+  const handleChange = (key: string, value: string) => {
+    setData((prev) => ({ ...prev, [key]: value }));
   };
 
+  const handleLogin = async () => {
+    try {
+      const response = await loginUser(data);
+      console.log('Login successful:', response);
+      if (response.token) {
+        setCookie('token', response.token, 1)
+        navigate('/dashboard');
+      } else {
+        alert("Invalid login credentials.");
+      }
+    } catch (err) {
+      setError('Invalid credentials, please try again.');
+    }
+  };
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
         <Box p={6} boxShadow="lg" borderRadius="md" width="400px">
           <Heading mb={4} textAlign="center">Login</Heading>
           <VStack>
-            <Field.Root required>
-              <Field.Label>
-                Email
-                <Field.RequiredIndicator />
-              </Field.Label>
-              
-              <Input placeholder="me@example.com"/>
-              <Field.HelperText />
-              <Field.ErrorText></Field.ErrorText>
-            </Field.Root>
-            <Field.Root required invalid>
-              <Field.Label>
-                Password
-                <Field.RequiredIndicator />
-              </Field.Label>
-              <Input />
-              <Field.HelperText />
-              <Field.ErrorText >Incorrect password</Field.ErrorText>
-            </Field.Root>
-
+            {
+              loginFields.map(({key, label, required, type}) => (
+                <Field.Root required>
+                <Field.Label>
+                  {label}
+                  <Field.RequiredIndicator />
+                </Field.Label>
+                <Input
+                  onChange={(e) => {
+                    handleChange(key, e.target.value) 
+                  }}
+                  value={data[key as TLogin]}
+                  type={type}
+                />
+                <Field.HelperText />
+                <Field.ErrorText></Field.ErrorText>
+              </Field.Root>
+              ))
+            }
             <Button colorScheme="blue" width="100%" onClick={handleLogin}>Login</Button>
           </VStack>
         </Box>
@@ -42,4 +63,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default withAuthRedirect(Login);
