@@ -1,34 +1,53 @@
-import { Box, Button, Field , Input, VStack, Heading } from "@chakra-ui/react";
+import { Box, Button, Field , Input, VStack, Heading, Fieldset } from "@chakra-ui/react";
 import { useState } from "react";
 import { loginFields } from "./config";
-import { TLogin } from "./types";
+import { IErrorLogin, TLogin } from "./types";
 import { loginUser } from "../../services/authService";
 import { setCookie } from "../../utils/cacheCookie";
-import withAuthRedirect from "../../HOC/withAuth";
+import { validateRequiredFields } from "../../utils/requiredFieldsValidation";
+import withAuthRedirect from "../../HOC/withAuthRedirect";
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [data, setData] = useState({ email: '', password: '' });
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<IErrorLogin | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
   const handleChange = (key: string, value: string) => {
     setData((prev) => ({ ...prev, [key]: value }));
+  
+    setError((prev) => {
+      if (prev) {
+        const { [key as TLogin]: ommitted, ...rest } = prev;
+        return rest;
+      }
+      return null;
+    });
+    if(serverError){
+      setServerError(null)
+    }
   };
 
   const handleLogin = async () => {
     try {
+      const _error = validateRequiredFields(data, ['email', 'password'])
+      if(Object.entries(_error).length) {
+        setError(_error)
+        return
+      }
       const response = await loginUser(data);
       console.log('Login successful:', response);
-      if (response.token) {
+
+      if (response.success) {
         setCookie('token', response.token, 1)
         navigate('/dashboard');
       } else {
-        alert("Invalid login credentials.");
+        setServerError(response.message)
       }
     } catch (err) {
-      setError('Invalid credentials, please try again.');
+     console.error(err)
     }
   };
 
@@ -36,10 +55,11 @@ const Login = () => {
     <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
         <Box p={6} boxShadow="lg" borderRadius="md" width="400px">
           <Heading mb={4} textAlign="center">Login</Heading>
-          <VStack>
+          <Fieldset.Root invalid>
+          <Fieldset.Content>
             {
               loginFields.map(({key, label, required, type}) => (
-                <Field.Root required>
+                <Field.Root required = {required} invalid = {!!error?.[key as TLogin]}>
                 <Field.Label>
                   {label}
                   <Field.RequiredIndicator />
@@ -52,12 +72,16 @@ const Login = () => {
                   type={type}
                 />
                 <Field.HelperText />
-                <Field.ErrorText></Field.ErrorText>
+                <Field.ErrorText>{error?.[key as TLogin]}</Field.ErrorText>
               </Field.Root>
               ))
             }
+            <Fieldset.ErrorText>
+              {serverError}
+            </Fieldset.ErrorText>
+               </Fieldset.Content>
             <Button colorScheme="blue" width="100%" onClick={handleLogin}>Login</Button>
-          </VStack>
+         </Fieldset.Root>
         </Box>
     </Box>
   );

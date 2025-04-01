@@ -1,47 +1,36 @@
-import { getCookie } from "../utils/cacheCookie";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { IUser, verifyToken } from "../services/authService";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "user" | "admin";
+interface IAuthContextType {
+  user: IUser | null | undefined;
 }
 
-interface AuthContextType {
-  user: User | null;
-  login: (userData: User) => void;
-  logout: () => void;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<IAuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const navigate = useNavigate();
+  const [user, setUser] = useState<IUser | undefined | null>(undefined);
+
+  const _verifyToken = async() => {
+    try {
+       const response = await verifyToken();
+       if (response.success) {
+         const _user = response.data as IUser
+         setUser(_user)
+       }else{
+        setUser(null)
+       }
+     } catch (err) {
+         console.error(err)
+     }
+ }
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    _verifyToken()
   }, []);
 
-  const login = (userData: User) => {
-    localStorage.setItem("user", JSON.stringify(userData));
-    setUser(userData);
-    navigate(userData.role === "admin" ? "/admin" : "/dashboard");
-  };
-
-  const logout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    navigate("/");
-  };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user }}>
       {children}
     </AuthContext.Provider>
   );
