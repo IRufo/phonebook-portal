@@ -37,6 +37,9 @@ const Register = () => {
       }
       return null;
     });
+    if(serverError){
+      setServerError(null)
+    }
   };
 
   const handleRegister = async () => {
@@ -56,7 +59,8 @@ const Register = () => {
       if (response.success) {
         navigate('/account-status');
       } else {
-        alert("Invalid login credentials.");
+        console.log('sdfsdf', response)
+        setServerError(response.message);
       }
     } catch (err) {
       setServerError('Invalid credentials, please try again.');
@@ -67,7 +71,7 @@ const Register = () => {
     <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
         <Box p={6} boxShadow="lg" borderRadius="md" width="400px">
           <Heading mb={4} textAlign="center">Sign up</Heading>
-          <Fieldset.Root>
+          <Fieldset.Root invalid>
             <Fieldset.Content>
               {
                 registerFields.map(({key, label, required, type}) => (
@@ -119,9 +123,9 @@ const Register = () => {
                 <Field.ErrorText >{error?.['confirm_password']}</Field.ErrorText>
               </Field.Root>
             </Fieldset.Content>
-            {/* <Fieldset.ErrorText>
-              Some fields are invalid. Please check them.
-            </Fieldset.ErrorText> */}
+            <Fieldset.ErrorText>
+              {serverError}
+            </Fieldset.ErrorText>
 
             <Button colorScheme="blue" width="100%" onClick={handleRegister}>Register</Button>
           </Fieldset.Root>

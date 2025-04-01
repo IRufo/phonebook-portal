@@ -25,7 +25,9 @@ const Login = () => {
       }
       return null;
     });
-    setServerError(null)
+    if(serverError){
+      setServerError(null)
+    }
   };
 
   const handleLogin = async () => {
