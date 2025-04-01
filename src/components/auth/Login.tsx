@@ -1,4 +1,4 @@
-import { Box, Button, Input, VStack, Heading } from "@chakra-ui/react";
+import { Box, Button, Field , Input, VStack, Heading } from "@chakra-ui/react";
 import { useState } from "react";
 
 const Login = () => {
@@ -9,26 +9,35 @@ const Login = () => {
     console.log("Logging in with:", { email, password });
   };
 
-  return <>hello</>
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-      <Box p={6} boxShadow="lg" borderRadius="md" width="400px">
-        <Heading mb={4} textAlign="center">Login</Heading>
-        <VStack>
-          {/* <FormControl>
-            <FormLabel>Email</FormLabel>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </FormControl>
+        <Box p={6} boxShadow="lg" borderRadius="md" width="400px">
+          <Heading mb={4} textAlign="center">Login</Heading>
+          <VStack>
+            <Field.Root required>
+              <Field.Label>
+                Email
+                <Field.RequiredIndicator />
+              </Field.Label>
+              
+              <Input placeholder="me@example.com"/>
+              <Field.HelperText />
+              <Field.ErrorText></Field.ErrorText>
+            </Field.Root>
+            <Field.Root required invalid>
+              <Field.Label>
+                Password
+                <Field.RequiredIndicator />
+              </Field.Label>
+              <Input />
+              <Field.HelperText />
+              <Field.ErrorText >Incorrect password</Field.ErrorText>
+            </Field.Root>
 
-          <FormControl>
-            <FormLabel>Password</FormLabel>
-            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </FormControl> */}
-
-          <Button colorScheme="blue" width="100%" onClick={handleLogin}>Login</Button>
-        </VStack>
-      </Box>
+            <Button colorScheme="blue" width="100%" onClick={handleLogin}>Login</Button>
+          </VStack>
+        </Box>
     </Box>
   );
 };
