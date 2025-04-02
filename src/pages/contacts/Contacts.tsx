@@ -1,19 +1,12 @@
-"use client";
-import Menu from "../components/ui/menu";
-import Pager from "../components/ui/pagination";
-import Popup from "../components/ui/popup";
+import Menu from "../../components/ui/menu";
+import Popup from "../../components/ui/popup";
 import {
   ActionBar,
   Button,
   Checkbox,
   Portal,
   Table,
-  IconButton,
   Flex,
-  Center,
-  Link,
-  Badge,
-  Icon,
   Text,
   Box,
   Fieldset,
@@ -25,25 +18,18 @@ import {
   Drawer,
   VStack,
 } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
-  SlPencil,
   SlTrash,
-  SlCheck,
-  SlPlus,
-  SlClose,
   SlShare,
-  SlReload,
+  SlUser,
+  SlUserUnfollow,
 } from "react-icons/sl";
 import { useParams, useNavigate } from "react-router-dom";
 import { GoPlus } from "react-icons/go";
-
-import {
-  SlUserFollowing,
-  SlUser,
-  SlUserFollow,
-  SlUserUnfollow,
-} from "react-icons/sl";
+import { IContact } from "./types";
+import TableRow from "./Contacts/TableRow";
+import { getContacts } from "../../services/contactService";
 
 const tabs = [
   {
@@ -71,19 +57,10 @@ const tabContent = [
   },
 ];
 
-const statusColors = { pending: "orange", approved: "green", deleted: "red" };
-const statusIcon = { pending: SlPlus, approved: SlCheck, deleted: SlClose };
+const columnHeaders = ['Name', 'Phone Number', 'Email', 'Actions']
 
-type User = {
-  id: number;
-  first_name: string;
-  last_name: string;
-  phone_number: string;
-  email: string;
-  status: string;
-};
 
-const items: User[] = [
+const items: IContact[] = [
   {
     id: 1,
     status: "approved",
@@ -126,9 +103,9 @@ const items: User[] = [
   },
 ];
 
-const Users = () => {
-  const [selection, setSelection] = useState<number[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>();
+const Contacts = () => {
+  const [selection, setSelection] = useState<string[]>([]);
+  const [selectedContact, setSelectedContact] = useState<IContact | null>();
 
   const [showBulkDeletePopup, setShowBulkDeletePopup] =
     useState<boolean>(false);
@@ -136,46 +113,61 @@ const Users = () => {
   const [showEditPopup, setShowEditPopup] = useState<boolean>(false);
   const [showRestorePopup, setShowRestorePopup] = useState<boolean>(false);
   const [showSharePopup, setShowSharePopup] = useState<boolean>(false);
+  const [contacts, setContacts] = useState<IContact[]>(items);
 
-  const [users, setUsers] = useState<User[]>([]);
+  console.log('sdfdsfsd', contacts)
 
   const navigate = useNavigate();
   let { status } = useParams();
   const [activeTab, setActiveTab] = useState<string>("");
 
-  const hasSelection = selection.length > 0;
-  const indeterminate = hasSelection && selection.length < users.length;
+  const hasSelection = useMemo(() => selection.length > 0, [selection.length] );
+  const indeterminate = useMemo(() => hasSelection && selection.length < contacts.length, [hasSelection, selection.length, contacts.length] ) ;
 
   useEffect(() => {
-    status = status || "all";
-    setActiveTab(status || "all");
+
+    const _getContacts = async() => {
+      const response = await getContacts()
+      if(response.success){
+        setContacts(response.data)
+      }
+      
+      setActiveTab(status || "all");
+    }
+
+    _getContacts()
+
   }, []);
 
   useEffect(() => {
+
+    console.log(activeTab, 'deactiveTab',contacts )
     if (activeTab !== "all") {
-      setUsers(items.filter((i) => i.status === activeTab));
+      setContacts((prev) => prev.filter((i) => i.status === activeTab));
     } else {
-      setUsers(items.filter((i) => i.status !== "deleted"));
+      setContacts((prev) => prev.filter((i) => i.status !== "deleted"));
     }
   }, [activeTab]);
 
+  console.log('cc', contacts)
+
   useEffect(() => {
     if (!showDeletePopup && !showEditPopup) {
-      setSelectedUser(null);
+      setSelectedContact(null);
     }
   }, [showDeletePopup, showEditPopup]);
 
   function bulkDelete() {
-    setUsers(users.filter((u) => !selection.includes(u.id)));
+    setContacts(contacts.filter((contact) => !selection.includes(contact.id)));
     setSelection([]);
   }
 
-  function deleteUser() {
-    setUsers(users.filter((u) => u.id != (selectedUser || {}).id));
+  function deleteContact() {
+    setContacts(contacts.filter((contact) => contact.id != (selectedContact || {}).id));
     setShowDeletePopup(false);
   }
 
-  function editUser() {
+  function editContact() {
     setShowEditPopup(false);
   }
 
@@ -185,107 +177,6 @@ const Users = () => {
     setActiveTab(newTab);
   }
 
-  const rows = users.map((item) => (
-    <Table.Row
-      key={item.id}
-      data-selected={selection.includes(item.id) ? "" : undefined}
-      p={2}
-      _hover={{ bg: "gray.50" }}
-    >
-      <Table.Cell>
-        {activeTab !== "deleted" ? (
-          <Checkbox.Root
-            size="sm"
-            top="0.5"
-            aria-label="Select row"
-            checked={selection.includes(item.id)}
-            onCheckedChange={(changes) => {
-              setSelection((prev) =>
-                changes.checked
-                  ? [...prev, item.id]
-                  : selection.filter((id) => id !== item.id)
-              );
-            }}
-          >
-            <Checkbox.HiddenInput />
-            <Checkbox.Control />
-          </Checkbox.Root>
-        ) : (
-          ""
-        )}
-      </Table.Cell>
-      <Table.Cell>
-        <HStack gap="3">
-          <Avatar.Root size="md">
-            <Avatar.Fallback name={`${item.first_name} ${item.last_name}`} />
-            {/* <Avatar.Image src="https://bit.ly/sage-adebayo" /> */}
-          </Avatar.Root>
-          <Link variant="underline" colorPalette="teal">
-            {item.first_name} {item.last_name}
-          </Link>
-        </HStack>
-      </Table.Cell>
-      <Table.Cell>{item.phone_number}</Table.Cell>
-      <Table.Cell>{item.email}</Table.Cell>
-      <Table.Cell>
-        <Flex gap="2">
-          <IconButton
-            p="4px"
-            size="xs"
-            variant="subtle"
-            rounded="full"
-            onClick={() => {
-              setSelectedUser(item);
-              setShowEditPopup(true);
-            }}
-          >
-            <SlPencil />
-          </IconButton>
-          {item.status !== "deleted" ? (
-            <>
-              <IconButton
-                p="4px"
-                size="xs"
-                variant="subtle"
-                rounded="full"
-                onClick={() => {
-                  setSelectedUser(item);
-                  setShowDeletePopup(true);
-                }}
-              >
-                <SlTrash />
-              </IconButton>
-              <IconButton
-                p="4px"
-                size="xs"
-                variant="subtle"
-                rounded="full"
-                onClick={() => {
-                  setSelection([item.id]);
-                  setShowSharePopup(true);
-                }}
-              >
-                <SlShare />
-              </IconButton>
-            </>
-          ) : (
-            <IconButton
-              p="4px"
-              size="xs"
-              variant="subtle"
-              rounded="full"
-              onClick={() => {
-                setSelectedUser(item);
-                setShowRestorePopup(true);
-              }}
-            >
-              <SlReload />
-            </IconButton>
-          )}
-        </Flex>
-      </Table.Cell>
-    </Table.Row>
-  ));
 
   return (
     <Box background="#fff" width="100%" height="100%" padding="5px" pr="15px">
@@ -309,7 +200,7 @@ const Users = () => {
                   }
                   onCheckedChange={(changes) => {
                     setSelection(
-                      changes.checked ? users.map((item) => item.id) : []
+                      changes.checked ? contacts.map((item) => item.id) : []
                     );
                   }}
                 >
@@ -320,18 +211,18 @@ const Users = () => {
                 ""
               )}
             </Table.ColumnHeader>
-            <Table.ColumnHeader>Name</Table.ColumnHeader>
-            <Table.ColumnHeader>Phone number</Table.ColumnHeader>
-            <Table.ColumnHeader>Email</Table.ColumnHeader>
-            <Table.ColumnHeader>Actions</Table.ColumnHeader>
+            {
+              columnHeaders.map((item) => <Table.ColumnHeader>{item}</Table.ColumnHeader>)
+            }
           </Table.Row>
         </Table.Header>
-        <Table.Body>{rows}</Table.Body>
+        <Table.Body>{
+           contacts.map((item) =>(
+            <TableRow item={item} selection={selection} activeTab={activeTab} 
+            setSelection={setSelection} setSelectedContact={setSelectedContact} setShowEditPopup={setShowEditPopup} setShowDeletePopup={setShowDeletePopup} setShowRestorePopup={setShowRestorePopup} setShowSharePopup={setShowSharePopup}/>
+          ))
+          }</Table.Body>
       </Table.Root>
-      {/* <Center mt={3}>
-        <Pager />
-      </Center> */}
-
       <ActionBar.Root open={hasSelection && activeTab !== "deleted"}>
         <Portal>
           <ActionBar.Positioner>
@@ -365,9 +256,9 @@ const Users = () => {
       </ActionBar.Root>
 
       <Popup
-        title={"Delete users"}
+        title={"Delete contacts"}
         content={
-          <Text>Are you sure want to delete all the selected user(s)?</Text>
+          <Text>Are you sure want to delete all the selected contact(s)?</Text>
         }
         confirm={<Button onClick={() => bulkDelete()}>Delete</Button>}
         open={showBulkDeletePopup}
@@ -375,9 +266,9 @@ const Users = () => {
       ></Popup>
 
       <Popup
-        title={"Delete user"}
-        content={<Text>Are you sure want to delete this user?</Text>}
-        confirm={<Button onClick={() => deleteUser()}>Delete</Button>}
+        title={"Delete contact"}
+        content={<Text>Are you sure want to delete this contact?</Text>}
+        confirm={<Button onClick={() => deleteContact()}>Delete</Button>}
         open={showDeletePopup}
         setOpen={setShowDeletePopup}
       ></Popup>
@@ -385,13 +276,13 @@ const Users = () => {
       <Popup
         title={"Restore contact"}
         content={<Text>Are you sure want to restore this contact?</Text>}
-        confirm={<Button onClick={() => deleteUser()}>Restore</Button>}
+        confirm={<Button onClick={() => deleteContact()}>Restore</Button>}
         open={showRestorePopup}
         setOpen={setShowRestorePopup}
       ></Popup>
 
       <Popup
-        title={"Edit user"}
+        title={"Edit contact"}
         content={
           <Fieldset.Root>
             <Fieldset.Content>
@@ -400,7 +291,7 @@ const Users = () => {
                   First name
                   <Field.RequiredIndicator />
                 </Field.Label>
-                <Input placeholder="John" value={selectedUser?.first_name} />
+                <Input placeholder="John" value={selectedContact?.first_name} />
                 <Field.ErrorText>First name is required</Field.ErrorText>
               </Field.Root>
 
@@ -409,13 +300,13 @@ const Users = () => {
                   Last name
                   <Field.RequiredIndicator />
                 </Field.Label>
-                <Input placeholder="Due" value={selectedUser?.last_name} />
+                <Input placeholder="Due" value={selectedContact?.last_name} />
                 <Field.ErrorText>Last name is required</Field.ErrorText>
               </Field.Root>
             </Fieldset.Content>
           </Fieldset.Root>
         }
-        confirm={<Button onClick={() => editUser()}>Edit</Button>}
+        confirm={<Button onClick={() => editContact()}>Edit</Button>}
         open={showEditPopup}
         setOpen={setShowEditPopup}
       ></Popup>
@@ -433,7 +324,7 @@ const Users = () => {
               </Drawer.Header>
               <Drawer.Body>
                 <p>
-                  search and select the user to whom you want to share the
+                  search and select the contact to whom you want to share the
                   contact(s)
                 </p>
                 <br/>
@@ -443,7 +334,7 @@ const Users = () => {
                 </Field.Root>
 
                 <VStack width="100%">
-                  {[...Array(5).keys()].map((i) => (
+                  {[...Array(5).keys()].map(() => (
                     <Box
                       background="gray.100"
                       p={2}
@@ -454,7 +345,6 @@ const Users = () => {
                       <HStack gap="3" width="full">
                         <Avatar.Root size="md">
                           <Avatar.Fallback name="Segun Adebayo" />
-                          {/* <Avatar.Image src="https://bit.ly/sage-adebayo" /> */}
                         </Avatar.Root>
                         <Box>
                           <Text textStyle="md">Segun Adebayo</Text>
@@ -476,4 +366,4 @@ const Users = () => {
   );
 };
 
-export default Users;
+export default Contacts;

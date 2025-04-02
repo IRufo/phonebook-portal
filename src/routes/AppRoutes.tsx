@@ -5,27 +5,13 @@ import UserHome from "../pages/UserHome";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import AccountStatus from "../pages/auth/AccountStatus";
-import { useAuth } from "../contexts/authContext";
-import { Navigate, Outlet } from "react-router-dom";
 import withProtectedRoute from "../HOC/withAuthRedirect";
 
-const ProtectedRoute: React.FC = () => {
-  const { user } = useAuth();  
-
-  if (user === undefined) {
-    return <div>Loading...</div>; 
-  }
-
-  if (user === null) {
-    return <Navigate to="/" replace />;
-  }
-
-  return <Outlet />;
-};
 
 const AppRoutes = () => {
 
   const ProtectedAdminDashboard = withProtectedRoute(AccountStatus);
+  
   return (
     <Routes>
       <Route path="/" element={<Login />} />

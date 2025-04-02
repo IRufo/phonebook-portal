@@ -1,19 +1,12 @@
 "use client";
-import Menu from "../components/ui/menu";
-import Pager from "../components/ui/pagination";
-import Popup from "../components/ui/popup";
+import Menu from "../../components/ui/menu";
+import Popup from "../../components/ui/popup";
 import {
   ActionBar,
   Button,
   Checkbox,
   Portal,
   Table,
-  IconButton,
-  Flex,
-  Center,
-  Link,
-  Badge,
-  Icon,
   Text,
   Box,
   Fieldset,
@@ -21,98 +14,23 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import { SlPencil, SlTrash, SlCheck, SlPlus, SlClose, SlReload } from "react-icons/sl";
+import { SlTrash } from "react-icons/sl";
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  SlUserFollowing,
-  SlUser,
-  SlUserFollow,
-  SlUserUnfollow,
-} from "react-icons/sl";
+import { IUser } from "./types";
+import { tabs, items } from "./config";
+import TableRow from "./TableRow";
 
-const tabs = [
-  {
-    key: 'all',
-    text: 'All users',
-    icon: SlUser,
-  }, 
-  {
-    key: 'approved',
-    text: 'Approved',
-    icon: SlUserFollowing
-  },
-  {
-    key: 'pending',
-    text: 'Pending approval',
-    icon: SlUserFollow
-  },
-  {
-    key: 'deleted',
-    text: 'Deleted',
-    icon: SlUserUnfollow
-  }
-]
-
-const statusColors = { pending: "orange", approved: "green", deleted: "red" };
-const statusIcon = { pending: SlPlus, approved: SlCheck, deleted: SlClose };
-
-type User = {
-  id: number,
-  first_name: string,
-  last_name: string,
-  email: string,
-  status: string
-}
-
-const items: User[] = [
-  {
-    id: 1,
-    status: "approved",
-    first_name: "Laptop",
-    last_name: "Laptop",
-    email: "Electronics",
-  },
-  {
-    id: 2,
-    status: "deleted",
-    first_name: "Coffee Maker",
-    last_name: "Coffee Maker",
-    email: "Home Appliances",
-  },
-  {
-    id: 3,
-    status: "approved",
-    first_name: "Desk Chair",
-    last_name: "Desk Chair",
-    email: "Furniture",
-  },
-  {
-    id: 4,
-    status: "pending",
-    first_name: "Smartphone",
-    last_name: "Smartphone",
-    email: "Electronics",
-  },
-  {
-    id: 5,
-    status: "approved",
-    first_name: "Headphones",
-    last_name: "Headphones",
-    email: "Accessories",
-  },
-];
-
+const columnHeaders = ['Name', 'Email', 'Status', 'Action']
 
 const Users = () => {
   const [selection, setSelection] = useState<number[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User>({id: 0, status: '', first_name: '', last_name: '', email: ''})
-
+  const [selectedUser, setSelectedUser] = useState<IUser>({id: 0, status: '', first_name: '', last_name: '', email: ''})
   const [showBulkDeletePopup, setShowBulkDeletePopup] = useState<boolean>(false);
   const [showDeletePopup, setShowDeletePopup] = useState<boolean>(false);
   const [showEditPopup, setShowEditPopup] = useState<boolean>(false);
   const [showRestorePopup, setShowRestorePopup] = useState<boolean>(false);
 
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<IUser[]>([])
 
   const navigate = useNavigate()
   let { status } = useParams();
@@ -181,95 +99,6 @@ const Users = () => {
     setShowRestorePopup(false)
   }
 
-  const rows = users.map((item) => (
-    <Table.Row
-      key={item.id}
-      data-selected={selection.includes(item.id) ? "" : undefined}
-      p={2}
-      _hover={{ bg: "gray.50" }}
-    >
-      <Table.Cell>
-        {![activeTab, item.status].includes('deleted') ? <Checkbox.Root
-          size="sm"
-          top="0.5"
-          aria-label="Select row"
-          checked={selection.includes(item.id)}
-          onCheckedChange={(changes) => {
-            setSelection((prev) =>
-              changes.checked
-                ? [...prev, item.id]
-                : selection.filter((id) => id !== item.id)
-            );
-          }}
-        >
-          <Checkbox.HiddenInput />
-          <Checkbox.Control />
-        </Checkbox.Root>: ''}
-      </Table.Cell>
-      <Table.Cell>
-        <Link variant="underline" colorPalette="teal">
-          {item.first_name} {item.last_name}
-        </Link>
-      </Table.Cell>
-      <Table.Cell>{item.email}</Table.Cell>
-      <Table.Cell>
-        <Badge
-          p={1}
-          variant="solid"
-          width="80px"
-          display="flex"
-          justifyContent="center"
-          colorPalette={(statusColors as any)[item.status]}
-        >
-          <Icon as={(statusIcon as any)[item.status]} />
-          {item.status}
-        </Badge>
-      </Table.Cell>
-      <Table.Cell>
-        <Flex gap="2">
-          <IconButton
-            p="4px"
-            size="xs"
-            variant="subtle"
-            rounded="full"
-            onClick={() => {
-              setSelectedUser(item)
-              setShowEditPopup(true);
-            }}
-            >
-            <SlPencil />
-          </IconButton>
-          {item.status !== 'deleted' ? 
-          <IconButton
-            p="4px"
-            size="xs"
-            variant="subtle"
-            rounded="full"
-            onClick={() => {
-              setSelectedUser(item)
-              setShowDeletePopup(true)
-            }}
-          >
-            <SlTrash />
-          </IconButton>: 
-            <IconButton
-              p="4px"
-              size="xs"
-              variant="subtle"
-              rounded="full"
-              onClick={() => {
-                setSelectedUser(item)
-                setShowRestorePopup(true)
-              }}
-            >
-              <SlReload/>
-            </IconButton>
-          }
-        </Flex>
-      </Table.Cell>
-    </Table.Row>
-  ));
-
   return (
     <Box background="#fff" width="100%" height="100%" padding="5px" pr="15px">
       <Menu tabs={tabs} value={activeTab} setValue={changeTab}/>
@@ -292,18 +121,18 @@ const Users = () => {
                 <Checkbox.Control />
               </Checkbox.Root>: ''}
             </Table.ColumnHeader>
-            <Table.ColumnHeader>Name</Table.ColumnHeader>
-            <Table.ColumnHeader>Email</Table.ColumnHeader>
-            <Table.ColumnHeader>Status</Table.ColumnHeader>
-            <Table.ColumnHeader>Actions</Table.ColumnHeader>
+            {
+              columnHeaders.map((item) => <Table.ColumnHeader>{item}</Table.ColumnHeader>)
+            }
           </Table.Row>
         </Table.Header>
-        <Table.Body>{rows}</Table.Body>
+        <Table.Body>{
+           users.map((item) =>(
+            <TableRow item={item} selection={selection} activeTab={activeTab} 
+            setSelection={setSelection} setSelectedUser={setSelectedUser} setShowEditPopup={setShowEditPopup} setShowDeletePopup={setShowDeletePopup} setShowRestorePopup={setShowRestorePopup}/>
+          ))
+          }</Table.Body>
       </Table.Root>
-      {/* <Center mt={3}>
-        <Pager />
-      </Center> */}
-
       <ActionBar.Root open={hasSelection}>
         <Portal>
           <ActionBar.Positioner>

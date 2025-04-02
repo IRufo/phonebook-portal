@@ -1,11 +1,10 @@
-import { Box, Grid, GridItem, Text, Button } from "@chakra-ui/react";
+import { Grid, GridItem, Text, Button } from "@chakra-ui/react";
 import Sidebar from '../components/ui/sidebar'
 import TopNavbar from '../components/ui/topNavbar'
-import Users from './users'
 import { SlUser, SlLogout } from "react-icons/sl";
 import Popup from "../components/ui/popup";
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import Users from "./users/Users";
 const AdminDashboard = () => {
 
   const [showLogoutPopup, setShowLogoutPopup] = useState<boolean>(false);

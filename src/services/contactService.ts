@@ -4,17 +4,18 @@ import { getCookie } from '../utils/cacheCookie';
 const API_URL = `${process.env.REACT_APP_API_URL}/contacts`;
 
 interface IContactPayload {
-  id?: string
+  id: string
   first_name: string;
   last_name: string;
   email: string;
   phone_number: string;
+  status: string
 }
 
 interface IContactResponse {
   success: boolean;
   message: string;
-  data: IContactPayload
+  data: IContactPayload | IContactPayload[]
 }
 
 
@@ -53,7 +54,7 @@ export const getContactById = async (id: string): Promise<IContactResponse> => {
   }
 };
 
-export const getContacts = async (): Promise<IContactResponse> => {
+export const getContacts = async () => {
   try {
     const token = getCookie('token')
     const response = await axios.get(`${API_URL}`, {

@@ -1,3 +1,4 @@
+import { Dispatch, SetStateAction } from "react";
 
 export interface IErrorContact {
     first_name?: string;
@@ -7,3 +8,26 @@ export interface IErrorContact {
 }
   
 export type TContact = 'first_name' | 'last_name' | 'email' | 'phone_number'
+
+export interface IContact {
+    id: string;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    email: string;
+    status: string;
+  };
+  
+
+export interface ITableRow {
+    item: IContact
+    selection: string[]
+    activeTab: string
+    setSelection:Dispatch<SetStateAction<string[]>>
+    setSelectedContact: (prev: IContact) => void
+    setShowEditPopup: (shw:boolean) => void
+    setShowDeletePopup: (shw:boolean) => void
+    setShowRestorePopup: (shw:boolean) => void
+    setShowSharePopup: (shw:boolean) => void
+    
+}

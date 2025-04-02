@@ -1,11 +1,11 @@
-import { Box, Grid, GridItem, Text, Button } from "@chakra-ui/react";
+import { Grid, GridItem, Text, Button } from "@chakra-ui/react";
 import Sidebar from '../components/ui/sidebar'
 import TopNavbar from '../components/ui/topNavbar'
-import Contacts from './contacts'
 import { SlUser, SlLogout, SlShare  } from "react-icons/sl";
 import Popup from "../components/ui/popup";
-
 import { useState } from "react";
+import Contacts from "./contacts/Contacts";
+
 const UserHome = () => {
 
   const [showLogoutPopup, setShowLogoutPopup] = useState<boolean>(false);
