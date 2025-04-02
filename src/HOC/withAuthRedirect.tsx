@@ -1,17 +1,21 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../contexts/authContext"; // Your custom auth context
+import { useAuth } from "../contexts/authContext"; 
 
-const withProtectedRoute = (WrappedComponent: React.ComponentType) => {
+const withProtectedRoute = (WrappedComponent: React.ComponentType, allowedRoles: string[]) => {
   return () => {
-    const { user } = useAuth(); // Get authentication status from context
+    const { user } = useAuth();
 
     if (user === undefined) {
-      return <div>Loading...</div>; // Show loading while checking user status
+      return <div>Loading...</div>;
     }
 
     if (user === null) {
-      return <Navigate to="/" replace />; // Redirect to login if not authenticated
+      return <Navigate to="/login" replace />;
+    }
+
+    if (!allowedRoles.includes(user.role)) {
+      return <Navigate to="/unauthorized" replace />;
     }
 
     return <WrappedComponent />;

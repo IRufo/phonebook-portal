@@ -10,27 +10,29 @@ import {
 import { SlPencil, SlTrash, SlCheck, SlPlus, SlClose, SlReload } from "react-icons/sl";
 import { ITableRow } from "./types";
 
-const statusColors = { pending: "orange", approved: "green", deleted: "red" };
-const statusIcon = { pending: SlPlus, approved: SlCheck, deleted: SlClose };
+const statusColors = { Pending: "orange", Active: "green", Deleted: "red" };
+const statusIcon = { Pending: SlPlus, Active: SlCheck, Deleted: SlClose };
 
 const TableRow = (props: ITableRow ) => {
-    const { item, selection, activeTab, setSelection, setSelectedUser, setShowEditPopup, setShowDeletePopup, setShowRestorePopup } = props
+    const { item, selection, activeTab, setSelection, setSelectedUser, setShowEditPopup, setShowDeletePopup, setShowRestorePopup, setShowApprovePopup } = props
+
+    console.log('sdfs',item)
 
     return (
-        <Table.Row
+      <Table.Row
         key={item.id}
         data-selected={selection.includes(item.id) ? "" : undefined}
         p={2}
         _hover={{ bg: "gray.50" }}
       >
         <Table.Cell>
-          {![activeTab, item.status].includes('deleted') ? <Checkbox.Root
+          {![activeTab, item.status].includes('Deleted') ? <Checkbox.Root
             size="sm"
             top="0.5"
             aria-label="Select row"
             checked={selection.includes(item.id)}
             onCheckedChange={(changes) => {
-              setSelection((prev: number[]) =>
+              setSelection((prev: string[]) =>
                 changes.checked
                   ? [...prev, item.id]
                   : selection.filter((id) => id !== item.id)
@@ -74,7 +76,22 @@ const TableRow = (props: ITableRow ) => {
               >
               <SlPencil />
             </IconButton>
-            {item.status !== 'deleted' ? 
+            {
+              item.status == 'Pending'? 
+                <IconButton
+                  p="4px"
+                  size="xs"
+                  variant="subtle"
+                  rounded="full"
+                  onClick={() => {
+                    setSelectedUser(item)
+                    setShowApprovePopup(true)
+                  }}
+                >
+                  <SlPlus/>
+                </IconButton> : null
+            }
+            {item.status !== 'Deleted' ? 
             <IconButton
               p="4px"
               size="xs"
@@ -87,18 +104,18 @@ const TableRow = (props: ITableRow ) => {
             >
               <SlTrash />
             </IconButton>: 
-              <IconButton
-                p="4px"
-                size="xs"
-                variant="subtle"
-                rounded="full"
-                onClick={() => {
-                  setSelectedUser(item)
-                  setShowRestorePopup(true)
-                }}
-              >
-                <SlReload/>
-              </IconButton>
+            <IconButton
+              p="4px"
+              size="xs"
+              variant="subtle"
+              rounded="full"
+              onClick={() => {
+                setSelectedUser(item)
+                setShowRestorePopup(true)
+              }}
+            >
+              <SlReload/>
+            </IconButton>
             }
           </Flex>
         </Table.Cell>

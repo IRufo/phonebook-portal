@@ -5,7 +5,6 @@ import { IErrorLogin, TLogin } from "./types";
 import { loginUser } from "../../services/authService";
 import { setCookie } from "../../utils/cacheCookie";
 import { validateRequiredFields } from "../../utils/requiredFieldsValidation";
-import withAuthRedirect from "../../HOC/withAuthRedirect";
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
@@ -87,4 +86,4 @@ const Login = () => {
   );
 };
 
-export default withAuthRedirect(Login);
+export default Login

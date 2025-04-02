@@ -14,45 +14,69 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import { SlTrash } from "react-icons/sl";
+import { SlBell, SlTrash, SlVolume1 } from "react-icons/sl";
 import { useParams, useNavigate } from 'react-router-dom';
 import { IUser } from "./types";
-import { tabs, items } from "./config";
+import { tabs } from "./config";
 import TableRow from "./TableRow";
+import { deleteUser, getUsers, getUsersByStatus, updateUser, activateUser } from "../../services/userService";
 
 const columnHeaders = ['Name', 'Email', 'Status', 'Action']
 
 const Users = () => {
-  const [selection, setSelection] = useState<number[]>([]);
-  const [selectedUser, setSelectedUser] = useState<IUser>({id: 0, status: '', first_name: '', last_name: '', email: ''})
+  const [selection, setSelection] = useState<string[]>([]);
+  const [selectedUser, setSelectedUser] = useState<IUser>({id: '', status: '', first_name: '', last_name: '', email: ''})
   const [showBulkDeletePopup, setShowBulkDeletePopup] = useState<boolean>(false);
   const [showDeletePopup, setShowDeletePopup] = useState<boolean>(false);
   const [showEditPopup, setShowEditPopup] = useState<boolean>(false);
+  const [showApprovePopup, setShowApprovePopup] = useState<boolean>(false);
   const [showRestorePopup, setShowRestorePopup] = useState<boolean>(false);
+  const [showBulkApprovePopup, setShowBulkApprovePopup] = useState<boolean>(false);
+  console.log('selectedUser', selectedUser)
 
   const [users, setUsers] = useState<IUser[]>([])
 
   const navigate = useNavigate()
-  let { status } = useParams();
-  const [activeTab, setActiveTab] = useState<string>('')
+  let { status = 'all' } = useParams();
+  const [activeTab, setActiveTab] = useState<string>(status)
 
   const hasSelection = selection.length > 0;
   const indeterminate = hasSelection && selection.length < users.length;
 
+  const fetchUsers = async (_status?: string) => {
+    const statusMap: Record<string, string> = {
+      approved: 'Active',
+      pending: 'Pending',
+      deleted: 'Deleted',
+    };
+    let response;
+    if (_status) {
+      const status = statusMap[_status]
+      response = await getUsersByStatus(status);
+    } else {
+      response = await getUsers();
+    }
+    console.log('response', response);
+    if (response.success) {
+      setUsers(response.data);
+    }
+  };
+
+
   useEffect(() => {
-    status = status || 'all'
-    setActiveTab(status || 'all')
+    fetchUsers()
   }, []);
 
   useEffect(() => {
-    if (activeTab !== 'all') {
-      setUsers(items.filter(i => i.status === activeTab))
-    } else {
-      setUsers(items)
+    console.log('activeTab',activeTab)
+    if(activeTab === 'all'){
+      fetchUsers()
+      return
     }
+    fetchUsers(activeTab)
   }, [activeTab])
 
-  function bulkDelete () {
+  const bulkDelete = () => {
     setUsers(users.map(u => {
       if (selection.includes(u.id)) {
         u.status = 'deleted'
@@ -62,41 +86,44 @@ const Users = () => {
     setSelection([])
   }
 
-  function deleteUser() {
-    setUsers(users.map(u => {
-      if (selectedUser?.id == u.id) {
-        u.status = 'deleted'
-      }
-      return u
-    }))
+  const removeUser = async() => {
+    await deleteUser(selectedUser.id)
+    fetchUsers(activeTab)
     setShowDeletePopup(false)
   }
 
-  function editUser() {
-    setUsers(users.map(u => {
-      if (selectedUser?.id == u.id) {
-        u.first_name = selectedUser.first_name
-        u.last_name = selectedUser.last_name
-      }
-      return u
-    }))
+  const editUser = async() => {
+    const {id, first_name, last_name} = selectedUser
+    await updateUser({
+      id, first_name, last_name
+    })
+    fetchUsers(activeTab)
     setShowEditPopup(false)
   }
 
-  function changeTab(newTab: string) {
+  const approveUser = async() => {
+    const {id} = selectedUser
+    await activateUser(id)
+    fetchUsers(activeTab)
+    setShowApprovePopup(false)
+  }
+  
+  const changeTab = (newTab: string) => {
     navigate(`/admin/users/${newTab}`)
     setSelection([])
     setActiveTab(newTab)
   }
 
-  function restoreUser () {
-    setUsers(users.map(u => {
-      if (selectedUser?.id == u.id) {
-        u.status = 'approved'
-      }
-      return u
-    }))
+  const restoreUser  = async () => {
+    const {id} = selectedUser
+    await activateUser(id)
+    fetchUsers(activeTab)
+
     setShowRestorePopup(false)
+  }
+
+  const bulkApprove = () => {
+    console.log('data',selectedUser)
   }
 
   return (
@@ -126,12 +153,14 @@ const Users = () => {
             }
           </Table.Row>
         </Table.Header>
-        <Table.Body>{
+        <Table.Body>
+          {
            users.map((item) =>(
-            <TableRow item={item} selection={selection} activeTab={activeTab} 
-            setSelection={setSelection} setSelectedUser={setSelectedUser} setShowEditPopup={setShowEditPopup} setShowDeletePopup={setShowDeletePopup} setShowRestorePopup={setShowRestorePopup}/>
+            <TableRow key={item.id} item={item} selection={selection} activeTab={activeTab} 
+            setSelection={setSelection} setSelectedUser={setSelectedUser} setShowEditPopup={setShowEditPopup} setShowDeletePopup={setShowDeletePopup} setShowRestorePopup={setShowRestorePopup} setShowApprovePopup={setShowApprovePopup}/>
           ))
-          }</Table.Body>
+          }
+          </Table.Body>
       </Table.Root>
       <ActionBar.Root open={hasSelection}>
         <Portal>
@@ -140,6 +169,15 @@ const Users = () => {
               <ActionBar.SelectionTrigger>
                 {selection.length} selected
               </ActionBar.SelectionTrigger>
+              <ActionBar.Separator />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowBulkApprovePopup(true)}
+              >
+                Approve
+                <SlBell />
+              </Button>
               <ActionBar.Separator />
               <Button
                 variant="outline"
@@ -156,6 +194,14 @@ const Users = () => {
 
       <Popup
         title={"Delete users"}
+        content={<Text>Are you sure want to approve all the selected user(s)?</Text>}
+        confirm={<Button onClick={() => bulkApprove()}>Delete</Button>}
+        open={showBulkApprovePopup}
+        setOpen={setShowBulkApprovePopup}
+      ></Popup>
+
+      <Popup
+        title={"Delete users"}
         content={<Text>Are you sure want to delete all the selected user(s)?</Text>}
         confirm={<Button onClick={() => bulkDelete()}>Delete</Button>}
         open={showBulkDeletePopup}
@@ -165,7 +211,7 @@ const Users = () => {
       <Popup
         title={"Delete user"}
         content={<Text>Are you sure want to delete this user?</Text>}
-        confirm={<Button onClick={() => deleteUser()}>Delete</Button>}
+        confirm={<Button onClick={() => removeUser()}>Delete</Button>}
         open={showDeletePopup}
         setOpen={setShowDeletePopup}
       ></Popup>
@@ -173,9 +219,17 @@ const Users = () => {
       <Popup
         title={"Restore user"}
         content={<Text>Are you sure want to restore this user?</Text>}
-        confirm={<Button onClick={() => restoreUser()}>Delete</Button>}
+        confirm={<Button onClick={() => restoreUser()}>Restore</Button>}
         open={showRestorePopup}
         setOpen={setShowRestorePopup}
+      ></Popup>
+
+      <Popup
+        title={"Approve user"}
+        content={<Text>Are you sure want to approve this user?</Text>}
+        confirm={<Button onClick={() => approveUser()}>Approve</Button>}
+        open={showApprovePopup}
+        setOpen={setShowApprovePopup}
       ></Popup>
 
       <Popup

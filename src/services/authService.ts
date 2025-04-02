@@ -55,6 +55,7 @@ export const registerUser = async (payload: IUser): Promise<IRegisterResponse> =
 export const verifyToken = async (): Promise<IRegisterResponse> => {
   try {
     const token = getCookie('token')
+    console.log('token', token)
     const response = await axios.get(`${API_URL}/verify-token`, {
       headers: {
         Authorization: `Bearer ${token}`
