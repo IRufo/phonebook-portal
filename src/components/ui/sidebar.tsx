@@ -1,5 +1,6 @@
+import { verifyToken } from "../../services/authService";
 import { List, Box, Icon, HStack, Avatar, Text } from "@chakra-ui/react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 type Menu = {
     text?: string;
@@ -12,6 +13,17 @@ interface IMyProps {
 }
 
 const Sidebar: React.FC<IMyProps> = (props: IMyProps) => {
+    const [{name, role}, setUser] = useState({name: '', role: ''})
+
+    useEffect(() => {
+        const getUser = async() => {
+            const res = await verifyToken()
+            const {data} = res
+            const {first_name, last_name, role} = data || {}
+            setUser({name: `${first_name} ${last_name}`, role})
+        }
+        getUser()
+    },[])
     return (
         <Box
             width="240px"
@@ -23,12 +35,12 @@ const Sidebar: React.FC<IMyProps> = (props: IMyProps) => {
             <Box background='gray.100' p={2} borderBottomWidth="1px">
                 <HStack gap="3">
                     <Avatar.Root size="md">
-                        <Avatar.Fallback name="Segun Adebayo" />
+                        <Avatar.Fallback name={name} />
                         {/* <Avatar.Image src="https://bit.ly/sage-adebayo" /> */}
                     </Avatar.Root>
                     <Box>
-                        <Text textStyle="md">Segun Adebayo</Text>
-                        <Text textStyle="xs" color="gray.500">Admin</Text>
+                        <Text textStyle="md">{name}</Text>
+                        <Text textStyle="xs" color="gray.500">{role}</Text>
                     </Box>
                 </HStack>
             </Box>

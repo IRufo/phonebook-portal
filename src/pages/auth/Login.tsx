@@ -41,12 +41,17 @@ const Login = () => {
 
       if (response.success) {
         setCookie('token', response.token, 1)
-        const res = await verifyToken()
-        if(['Admin', 'Super Admin'].includes(res.data.role)){
-          navigate('/admin/users/all');
-          return
-        }
-        navigate('/dashboard');
+        setTimeout(async() => {
+          const res = await verifyToken()
+          console.log('sdfdsf',res)
+
+          if(['Admin', 'Super Admin'].includes(res?.data?.role)){
+            navigate('/admin/users/all');
+            return
+          }
+          navigate('/dashboard');
+
+        },1000 )
       } else {
         setServerError(response.message)
       }

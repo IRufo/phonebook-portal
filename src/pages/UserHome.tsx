@@ -5,8 +5,11 @@ import { SlUser, SlLogout, SlShare  } from "react-icons/sl";
 import Popup from "../components/ui/popup";
 import { useState } from "react";
 import Contacts from "./contacts/Contacts";
+import { deleteCookie } from "../utils/cacheCookie";
+import { useNavigate } from "react-router-dom";
 
 const UserHome = () => {
+  const navigate = useNavigate();
 
   const [showLogoutPopup, setShowLogoutPopup] = useState<boolean>(false);
 
@@ -53,7 +56,11 @@ const UserHome = () => {
     <Popup
       title={"Log out"}
       content={<Text>Are you sure want to log out?</Text>}
-      confirm={<Button onClick={() => alert('logout')}>Logout</Button>}
+      confirm={<Button onClick={() =>  {
+        deleteCookie('token')
+        setShowLogoutPopup(false)
+        navigate('/login')
+      }}>Logout</Button>}
       open={showLogoutPopup}
       setOpen={setShowLogoutPopup}
     ></Popup>
