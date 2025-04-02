@@ -29,12 +29,21 @@ import { useParams, useNavigate } from "react-router-dom";
 import { GoPlus } from "react-icons/go";
 import { IContact } from "./types";
 import TableRow from "./Contacts/TableRow";
-import { getContacts } from "../../services/contactService";
 
 const tabs = [
   {
     key: "all",
-    text: "Current Contacts",
+    text: "Contacts",
+    icon: SlUser,
+  },
+  {
+    key: "my-contacts",
+    text: "My Contacts",
+    icon: SlUser,
+  },
+  {
+    key: "shared-contacts",
+    text: "Shared with Me",
     icon: SlUser,
   },
   {
@@ -113,13 +122,13 @@ const Contacts = () => {
   const [showEditPopup, setShowEditPopup] = useState<boolean>(false);
   const [showRestorePopup, setShowRestorePopup] = useState<boolean>(false);
   const [showSharePopup, setShowSharePopup] = useState<boolean>(false);
-  const [contacts, setContacts] = useState<IContact[]>(items);
+  const [contacts, setContacts] = useState<IContact[]>([]);
 
   console.log('sdfdsfsd', contacts)
 
   const navigate = useNavigate();
   let { status } = useParams();
-  const [activeTab, setActiveTab] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<string>(status || "all");
 
   const hasSelection = useMemo(() => selection.length > 0, [selection.length] );
   const indeterminate = useMemo(() => hasSelection && selection.length < contacts.length, [hasSelection, selection.length, contacts.length] ) ;
@@ -127,12 +136,11 @@ const Contacts = () => {
   useEffect(() => {
 
     const _getContacts = async() => {
-      const response = await getContacts()
-      if(response.success){
-        setContacts(response.data)
-      }
-      
-      setActiveTab(status || "all");
+      // const response = await getContacts()
+      // if(response.success){
+      //   setContacts(response.data)
+      // }
+      setContacts(items)
     }
 
     _getContacts()
@@ -143,9 +151,10 @@ const Contacts = () => {
 
     console.log(activeTab, 'deactiveTab',contacts )
     if (activeTab !== "all") {
-      setContacts((prev) => prev.filter((i) => i.status === activeTab));
+      setContacts(items.filter((i) => i.status === activeTab));
+      //filter shared contacts where status = active tab
     } else {
-      setContacts((prev) => prev.filter((i) => i.status !== "deleted"));
+      setContacts(items.filter((i) => i.status !== "deleted"));
     }
   }, [activeTab]);
 
