@@ -13,7 +13,7 @@ import {
   Field,
   Input,
 } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { SlBell, SlPlus, SlTrash, SlVolume1 } from "react-icons/sl";
 import { useParams, useNavigate } from 'react-router-dom';
 import { IUser } from "./types";
@@ -40,8 +40,9 @@ const Users = () => {
   let { status = 'all' } = useParams();
   const [activeTab, setActiveTab] = useState<string>(status)
 
-  const hasSelection = selection.length > 0;
-  const indeterminate = hasSelection && selection.length < users.length;
+  const hasSelection = useMemo(() => selection.length > 0, [selection.length] );
+  const indeterminate = useMemo(() => hasSelection && selection.length < users.length, [hasSelection, selection.length, users.length] ) ;
+
 
   const fetchUsers = async (_status?: string) => {
     const statusMap: Record<string, string> = {
@@ -128,8 +129,6 @@ const Users = () => {
       selection.map((id) => activateUser(id))
     )
     setSelection([])
-    
-
     setShowBulkApprovePopup(false)
   }
 
@@ -249,7 +248,7 @@ const Users = () => {
                   First name
                   <Field.RequiredIndicator />
                 </Field.Label>
-                <Input placeholder="John" value={selectedUser?.first_name} onChange={e => setSelectedUser({...selectedUser, first_name: e.target.value})}/>
+                <Input placeholder="John" value={selectedUser?.first_name} onChange={e => setSelectedUser((prev) => ({...prev, first_name: e.target.value}))}/>
                 <Field.ErrorText>First name is required</Field.ErrorText>
               </Field.Root>
 
@@ -258,7 +257,7 @@ const Users = () => {
                   Last name
                   <Field.RequiredIndicator />
                 </Field.Label>
-                <Input placeholder="Due" value={selectedUser?.last_name} onChange={e => setSelectedUser({...selectedUser, last_name: e.target.value})}/>
+                <Input placeholder="Due" value={selectedUser?.last_name} onChange={e => setSelectedUser((prev) => ({...prev, last_name: e.target.value}))}/>
                 <Field.ErrorText>Last name is required</Field.ErrorText>
               </Field.Root>
             </Fieldset.Content>

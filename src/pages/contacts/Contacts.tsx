@@ -18,7 +18,7 @@ import {
   Drawer,
   VStack,
 } from "@chakra-ui/react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, act } from "react";
 import {
   SlTrash,
   SlShare,
@@ -27,15 +27,15 @@ import {
 } from "react-icons/sl";
 import { useParams, useNavigate } from "react-router-dom";
 import { GoPlus } from "react-icons/go";
-import { IContact } from "./types";
+import { IContact, IErrorContact, TContact } from "./types";
 import TableRow from "./Contacts/TableRow";
+import { createContact, deleteContact, updateContact, getContacts } from "../../services/contactService";
+import { contactFields } from "./config";
+import { getUsersByStatus } from "../../services/userService";
+import { IUser } from "@/services/authService";
+import { getSharedContacts, shareContact, getContactsSharedWithMe, unshareContact } from "../../services/sharedContactService";
 
 const tabs = [
-  {
-    key: "all",
-    text: "Contacts",
-    icon: SlUser,
-  },
   {
     key: "my-contacts",
     text: "My Contacts",
@@ -43,74 +43,18 @@ const tabs = [
   },
   {
     key: "shared-contacts",
-    text: "Shared with Me",
+    text: "Shared Contacts",
     icon: SlUser,
   },
   {
-    key: "deleted",
-    text: "Deleted Contacts",
-    icon: SlUserUnfollow,
-  },
-];
-
-const tabContent = [
-  {
-    tab: "all",
-    content: (
-      <Flex justifyContent="start" pt={3}>
-        <Button variant="surface">
-          Create New Contact <GoPlus />
-        </Button>
-      </Flex>
-    ),
-  },
+    key: "shared-with-me",
+    text: "Shared with Me",
+    icon: SlUser,
+  }
 ];
 
 const columnHeaders = ['Name', 'Phone Number', 'Email', 'Actions']
 
-
-const items: IContact[] = [
-  {
-    id: 1,
-    status: "approved",
-    first_name: "Laptop",
-    last_name: "Laptop",
-    phone_number: "90898989898",
-    email: "Electronics",
-  },
-  {
-    id: 2,
-    status: "deleted",
-    first_name: "Coffee Maker",
-    last_name: "Coffee Maker",
-    phone_number: "90898989898",
-    email: "Home Appliances",
-  },
-  {
-    id: 3,
-    status: "approved",
-    first_name: "Desk Chair",
-    last_name: "Desk Chair",
-    phone_number: "90898989898",
-    email: "Furniture",
-  },
-  {
-    id: 4,
-    status: "pending",
-    first_name: "Smartphone",
-    last_name: "Smartphone",
-    phone_number: "90898989898",
-    email: "Electronics",
-  },
-  {
-    id: 5,
-    status: "approved",
-    first_name: "Headphones",
-    last_name: "Headphones",
-    phone_number: "90898989898",
-    email: "Accessories",
-  },
-];
 
 const Contacts = () => {
   const [selection, setSelection] = useState<string[]>([]);
@@ -120,45 +64,87 @@ const Contacts = () => {
     useState<boolean>(false);
   const [showDeletePopup, setShowDeletePopup] = useState<boolean>(false);
   const [showEditPopup, setShowEditPopup] = useState<boolean>(false);
-  const [showRestorePopup, setShowRestorePopup] = useState<boolean>(false);
+  const [showCreatePopup, setShowCreatePopup] = useState<boolean>(false);
+  const [showUnsharePopup, setShowUnsharePopup] = useState<boolean>(false);
   const [showSharePopup, setShowSharePopup] = useState<boolean>(false);
   const [contacts, setContacts] = useState<IContact[]>([]);
+  const [error, setError] = useState<IErrorContact | null>(null);
+  const [users, setUsers] = useState<IUser[] | []>([])
+  const [searchUser, setSearchUser] = useState<string>('')
 
-  console.log('sdfdsfsd', contacts)
 
   const navigate = useNavigate();
   let { status } = useParams();
-  const [activeTab, setActiveTab] = useState<string>(status || "all");
+  const [activeTab, setActiveTab] = useState<string>(status ||"my-contacts");
 
   const hasSelection = useMemo(() => selection.length > 0, [selection.length] );
   const indeterminate = useMemo(() => hasSelection && selection.length < contacts.length, [hasSelection, selection.length, contacts.length] ) ;
 
-  useEffect(() => {
-
-    const _getContacts = async() => {
-      // const response = await getContacts()
-      // if(response.success){
-      //   setContacts(response.data)
-      // }
-      setContacts(items)
+  const _getContacts = async() => {
+    const response = await getContacts()
+    if(response.success){
+      setContacts(response.data )
+      return
     }
+  }
 
-    _getContacts()
+  const _getContactsSharedWithMe = async() => {
+    const response = await getContactsSharedWithMe()
+    if(response.success){
+      setContacts(response.data)
+      return
+    }
+  }
 
+  const _getSharedContacts = async() => {
+    const response = await getSharedContacts()
+    if(response.success){
+      setContacts(response.data)
+      return
+    }
+  }
+
+
+  const _getUsers = async () => {
+    const response = await getUsersByStatus('Active');
+    if(response.success){
+      setUsers(response.data)
+    }
+  }
+
+  useEffect(() => {
+    _getUsers()
   }, []);
 
   useEffect(() => {
-
-    console.log(activeTab, 'deactiveTab',contacts )
-    if (activeTab !== "all") {
-      setContacts(items.filter((i) => i.status === activeTab));
-      //filter shared contacts where status = active tab
-    } else {
-      setContacts(items.filter((i) => i.status !== "deleted"));
+    if(!searchUser){
+      _getUsers()
+      return
     }
-  }, [activeTab]);
+    if(!users.length) return
+    const searchUsers = (searchString: string) => {
+      return users.filter((user: IUser) => 
+        user.first_name.toLowerCase().includes(searchString.toLowerCase()) || 
+        user.last_name.toLowerCase().includes(searchString.toLowerCase())
+      );
+    };
 
-  console.log('cc', contacts)
+    const _users = searchUsers(searchUser)
+    setUsers(_users)
+
+  },[searchUser])
+
+  useEffect(() => {
+    console.log('activeTab', activeTab)
+    if (activeTab === "shared-with-me") {
+      _getContactsSharedWithMe()
+      return
+    }else if (activeTab == 'shared-contacts') {
+      _getSharedContacts()
+      return
+    }
+    _getContacts()
+  }, [activeTab]);
 
   useEffect(() => {
     if (!showDeletePopup && !showEditPopup) {
@@ -166,21 +152,64 @@ const Contacts = () => {
     }
   }, [showDeletePopup, showEditPopup]);
 
-  function bulkDelete() {
+  const bulkDelete = () => {
     setContacts(contacts.filter((contact) => !selection.includes(contact.id)));
     setSelection([]);
   }
 
-  function deleteContact() {
-    setContacts(contacts.filter((contact) => contact.id != (selectedContact || {}).id));
+  const _deleteContact = async() => {
+    const {id, owner_id} = selectedContact || {}
+    await deleteContact({
+      id, owner_id
+    } as {id: string, owner_id: string})
+    _getContacts()
     setShowDeletePopup(false);
   }
 
-  function editContact() {
-    setShowEditPopup(false);
+  const _createContact = async() => {
+    await createContact(selectedContact as IContact)
+    _getContacts()
+    setShowCreatePopup(false)
+    setSelectedContact(null)
   }
 
-  function changeTab(newTab: string) {
+  const editContact = async() => {
+    await updateContact(selectedContact as IContact)
+    _getContacts()
+    setShowEditPopup(false)
+    setSelectedContact(null);
+
+  }
+
+  const _common = () => {
+    if(activeTab == 'shared-with-me'){
+      _getContactsSharedWithMe()
+    }else if (activeTab == 'shared-contacts') {
+      _getSharedContacts()
+    }else{
+      _getContacts()
+    }
+    setSelectedContact(null);
+  }
+
+  const _shareContact = async(shared_with_user_id: string) => {
+    await shareContact({
+      owner_id: selectedContact?.owner_id as string,
+      shared_with_user_id,
+      contact_id: selectedContact?.id  as string
+    })
+    _common()
+    setShowSharePopup(false)
+  }
+
+  const _unShareContact = async() => {
+    console.log('sdfsdfa', selectedContact)
+    await unshareContact({contact_id: selectedContact?.id as string, owner_id: selectedContact?.owner_id as string} )
+    _common()
+    setShowUnsharePopup(false)
+  }
+
+  const changeTab = (newTab: string) => {
     navigate(`/contacts/${newTab}`);
     setSelection([]);
     setActiveTab(newTab);
@@ -193,7 +222,18 @@ const Contacts = () => {
         tabs={tabs}
         value={activeTab}
         setValue={changeTab}
-        contents={tabContent}
+        contents={[
+          {
+            tab: "my-contacts",
+            content: (
+              <Flex justifyContent="start" pt={3}>
+                <Button variant="surface" onClick={() => setShowCreatePopup(true)}>
+                  Create New Contact <GoPlus />
+                </Button>
+              </Flex>
+            ),
+          },
+        ]}
       />
       <Table.Root mt={5}>
         <Table.Header>
@@ -228,7 +268,7 @@ const Contacts = () => {
         <Table.Body>{
            contacts.map((item) =>(
             <TableRow item={item} selection={selection} activeTab={activeTab} 
-            setSelection={setSelection} setSelectedContact={setSelectedContact} setShowEditPopup={setShowEditPopup} setShowDeletePopup={setShowDeletePopup} setShowRestorePopup={setShowRestorePopup} setShowSharePopup={setShowSharePopup}/>
+            setSelection={setSelection} setSelectedContact={setSelectedContact} setShowEditPopup={ setShowEditPopup } setShowDeletePopup={setShowDeletePopup} setShowUnsharePopup={setShowUnsharePopup} setShowSharePopup={setShowSharePopup}/>
           ))
           }</Table.Body>
       </Table.Root>
@@ -242,7 +282,7 @@ const Contacts = () => {
 
               <ActionBar.Separator />
 
-              <Button
+             {activeTab == 'my-contacts'  &&<> <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowBulkDeletePopup(true)}
@@ -250,7 +290,7 @@ const Contacts = () => {
                 Delete
                 <SlTrash />
               </Button>
-              <ActionBar.Separator />
+              <ActionBar.Separator /></> }
               <Button
                 variant="outline"
                 size="sm"
@@ -277,47 +317,56 @@ const Contacts = () => {
       <Popup
         title={"Delete contact"}
         content={<Text>Are you sure want to delete this contact?</Text>}
-        confirm={<Button onClick={() => deleteContact()}>Delete</Button>}
+        confirm={<Button onClick={() => _deleteContact()}>Delete</Button>}
         open={showDeletePopup}
         setOpen={setShowDeletePopup}
       ></Popup>
 
       <Popup
-        title={"Restore contact"}
-        content={<Text>Are you sure want to restore this contact?</Text>}
-        confirm={<Button onClick={() => deleteContact()}>Restore</Button>}
-        open={showRestorePopup}
-        setOpen={setShowRestorePopup}
+        title={"Unshare contact"}
+        content={<Text>Are you sure want to unshare this contact?</Text>}
+        confirm={<Button onClick={() => _unShareContact()}>Unshare</Button>}
+        open={showUnsharePopup}
+        setOpen={setShowUnsharePopup}
       ></Popup>
 
       <Popup
-        title={"Edit contact"}
+        title={showCreatePopup? 'Create Contact' : 'Edit Contact'}
         content={
           <Fieldset.Root>
             <Fieldset.Content>
-              <Field.Root required>
+            {
+              contactFields.map(({key, label, required, type}) => (
+                <Field.Root required = {required} invalid = {!!error?.[key as TContact]}>
                 <Field.Label>
-                  First name
+                  {label}
                   <Field.RequiredIndicator />
                 </Field.Label>
-                <Input placeholder="John" value={selectedContact?.first_name} />
-                <Field.ErrorText>First name is required</Field.ErrorText>
+                <Input
+                  onChange={(e) => {
+                    setSelectedContact( (prev) => ({...(prev || {}), [key as TContact]: e.target.value})) 
+                  }}
+                  value={selectedContact?.[key as TContact]}
+                  type={type}
+                />
+                <Field.HelperText />
+                <Field.ErrorText>{error?.[key as TContact]}</Field.ErrorText>
               </Field.Root>
-
-              <Field.Root required>
-                <Field.Label>
-                  Last name
-                  <Field.RequiredIndicator />
-                </Field.Label>
-                <Input placeholder="Due" value={selectedContact?.last_name} />
-                <Field.ErrorText>Last name is required</Field.ErrorText>
-              </Field.Root>
+              ))
+            }
             </Fieldset.Content>
           </Fieldset.Root>
         }
-        confirm={<Button onClick={() => editContact()}>Edit</Button>}
-        open={showEditPopup}
-        setOpen={setShowEditPopup}
+        confirm={<Button onClick={() =>{
+          if(showCreatePopup){
+            _createContact()
+            return
+          }else{
+            editContact()
+          }
+         }}>{showCreatePopup? 'Create': 'Edit'}</Button>}
+        open={showEditPopup || showCreatePopup}
+        setOpen={showCreatePopup? setShowCreatePopup: setShowEditPopup}
       ></Popup>
 
       <Drawer.Root
@@ -333,17 +382,20 @@ const Contacts = () => {
               </Drawer.Header>
               <Drawer.Body>
                 <p>
-                  search and select the contact to whom you want to share the
+                  Search and select the contact to whom you want to share the
                   contact(s)
                 </p>
                 <br/>
                 <Field.Root>
-                  <Input placeholder="Email" />
+                  <Input placeholder="Email"  onChange={(e) => setSearchUser(e.target.value)}/>
                   <Field.HelperText />
                 </Field.Root>
 
                 <VStack width="100%">
-                  {[...Array(5).keys()].map(() => (
+                  {users.map((user) => {
+                    const {first_name, last_name, id} = user
+                    const name = `${first_name} ${last_name}`
+                    return (
                     <Box
                       background="gray.100"
                       p={2}
@@ -353,14 +405,14 @@ const Contacts = () => {
                     >
                       <HStack gap="3" width="full">
                         <Avatar.Root size="md">
-                          <Avatar.Fallback name="Segun Adebayo" />
+                          <Avatar.Fallback name={name} />
                         </Avatar.Root>
                         <Box>
-                          <Text textStyle="md">Segun Adebayo</Text>
+                          <Text textStyle="md">{name} <Button onClick={() => _shareContact(id)}> Share </Button></Text>
                         </Box>
                       </HStack>
                     </Box>
-                  ))}
+                  )})}
                 </VStack>
               </Drawer.Body>
              

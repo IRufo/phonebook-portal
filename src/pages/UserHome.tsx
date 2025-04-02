@@ -17,12 +17,7 @@ const UserHome = () => {
       {
           text: "Contacts",
           icon: SlUser,
-          onClick: () => alert('redirect to users list')
-      },
-      {
-        text: "Shared Contacts",
-        icon: SlShare,
-        onClick: () => alert('redirect to users list')
+          onClick: () => (null)
       },
       {
           text: "Log out",

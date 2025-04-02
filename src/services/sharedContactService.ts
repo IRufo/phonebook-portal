@@ -18,7 +18,11 @@ interface IShareContactResponse {
 }
 
 
-export const shareContact = async (payload: IShareContactPayload): Promise<IShareContactResponse> => {
+export const shareContact = async (payload: {
+  owner_id: string,
+  shared_with_user_id: string,
+  contact_id: string
+}): Promise<IShareContactResponse> => {
   try {
     const token = getCookie('token')
     const response = await axios.post(`${API_URL}`, payload, {
@@ -53,7 +57,24 @@ export const getShareContactById = async (id: string): Promise<IShareContactResp
   }
 };
 
-export const getShareContacts = async (): Promise<IShareContactResponse> => {
+export const getContactsSharedWithMe = async () => {
+  try {
+    const token = getCookie('token')
+    const response = await axios.get(`${API_URL}/shared-with-me`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  }catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      return error.response?.data; 
+    }
+    throw new Error('Fetching of Contacts Failed.');
+  }
+};
+
+export const getSharedContacts = async () => {
   try {
     const token = getCookie('token')
     const response = await axios.get(`${API_URL}`, {
@@ -66,14 +87,14 @@ export const getShareContacts = async (): Promise<IShareContactResponse> => {
     if (axios.isAxiosError(error)) {
       return error.response?.data; 
     }
-    throw new Error('Fetching of Shared Contacts Failed.');
+    throw new Error('Fetching of Contacts Failed.');
   }
 };
 
-export const unshareContact = async (payload: IShareContactPayload): Promise<IShareContactResponse> => {
+export const unshareContact = async ({contact_id, owner_id}:{contact_id: string, owner_id: string}): Promise<IShareContactResponse> => {
   try {
     const token = getCookie('token')
-    const response = await axios.delete(`${API_URL}/${payload?.id}`, {
+    const response = await axios.patch(`${API_URL}/unshare/${contact_id}`, {owner_id: owner_id || 's'},{
       headers: {
         Authorization: `Bearer ${token}`
       }

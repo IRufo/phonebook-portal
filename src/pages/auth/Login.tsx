@@ -49,7 +49,7 @@ const Login = () => {
             navigate('/admin/users/all');
             return
           }
-          navigate('/dashboard');
+          navigate('/contacts/my-contacts');
 
         },1000 )
       } else {

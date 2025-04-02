@@ -11,13 +11,13 @@ import {
   SlPencil,
   SlTrash,
   SlShare,
-  SlReload,
+  SlUserUnfollow,
 } from "react-icons/sl";
 import { ITableRow } from "../types";
 
 
 const TableRow = (props: ITableRow) => {
-    const { item, selection, activeTab, setSelection, setSelectedContact, setShowEditPopup, setShowDeletePopup, setShowRestorePopup, setShowSharePopup } = props
+    const { item, selection, activeTab, setSelection, setSelectedContact, setShowEditPopup, setShowDeletePopup, setShowUnsharePopup, setShowSharePopup } = props
 
    return (  <Table.Row
     key={item.id}
@@ -61,20 +61,20 @@ const TableRow = (props: ITableRow) => {
     <Table.Cell>{item.email}</Table.Cell>
     <Table.Cell>
       <Flex gap="2">
-        <IconButton
-          p="4px"
-          size="xs"
-          variant="subtle"
-          rounded="full"
-          onClick={() => {
-            setSelectedContact(item);
-            setShowEditPopup(true);
-          }}
-        >
-          <SlPencil />
-        </IconButton>
-        {item.status !== "deleted" ? (
+        {activeTab !== "shared-with-me" ? (
           <>
+            <IconButton
+              p="4px"
+              size="xs"
+              variant="subtle"
+              rounded="full"
+              onClick={() => {
+                setSelectedContact(item);
+                setShowEditPopup(true);
+              }}
+            >
+              <SlPencil />
+            </IconButton>
             <IconButton
               p="4px"
               size="xs"
@@ -93,7 +93,7 @@ const TableRow = (props: ITableRow) => {
               variant="subtle"
               rounded="full"
               onClick={() => {
-                setSelection([item.id]);
+                setSelectedContact(item)
                 setShowSharePopup(true);
               }}
             >
@@ -102,18 +102,33 @@ const TableRow = (props: ITableRow) => {
           </>
         ) : (
           <IconButton
-            p="4px"
-            size="xs"
-            variant="subtle"
-            rounded="full"
-            onClick={() => {
-              setSelectedContact(item);
-              setShowRestorePopup(true);
-            }}
-          >
-            <SlReload />
-          </IconButton>
+          p="4px"
+          size="xs"
+          variant="subtle"
+          rounded="full"
+          onClick={() => {
+            setSelectedContact(item)
+            setShowSharePopup(true);
+          }}
+        >
+          <SlShare />
+        </IconButton>
         )}
+        {
+          activeTab == 'shared-contacts' && 
+          <IconButton
+          p="4px"
+          size="xs"
+          variant="subtle"
+          rounded="full"
+          onClick={() => {
+            setSelectedContact(item);
+            setShowUnsharePopup(true);
+          }}
+        >
+          <SlUserUnfollow />
+        </IconButton>
+        }
       </Flex>
     </Table.Cell>
   </Table.Row>)

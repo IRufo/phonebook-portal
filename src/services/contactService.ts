@@ -88,10 +88,10 @@ export const updateContact = async (payload: IContactPayload): Promise<IContactR
   }
 };
 
-export const deleteContact = async (payload: IContactPayload): Promise<IContactResponse> => {
+export const deleteContact = async ({id, owner_id}:{id: string, owner_id: string}): Promise<IContactResponse> => {
   try {
     const token = getCookie('token')
-    const response = await axios.delete(`${API_URL}/${payload?.id}`, {
+    const response = await axios.patch(`${API_URL}/delete/${id}`,{ owner_id}, {
       headers: {
         Authorization: `Bearer ${token}`
       }

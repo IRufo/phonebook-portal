@@ -16,6 +16,7 @@ export interface IContact {
     phone_number: string;
     email: string;
     status: string;
+    owner_id: string
   };
   
 
@@ -27,7 +28,7 @@ export interface ITableRow {
     setSelectedContact: (prev: IContact) => void
     setShowEditPopup: (shw:boolean) => void
     setShowDeletePopup: (shw:boolean) => void
-    setShowRestorePopup: (shw:boolean) => void
+    setShowUnsharePopup: (shw:boolean) => void
     setShowSharePopup: (shw:boolean) => void
     
 }
