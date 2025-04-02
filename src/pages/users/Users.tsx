@@ -31,7 +31,6 @@ const Users = () => {
   const [showApprovePopup, setShowApprovePopup] = useState<boolean>(false);
   const [showRestorePopup, setShowRestorePopup] = useState<boolean>(false);
   const [showBulkApprovePopup, setShowBulkApprovePopup] = useState<boolean>(false);
-  console.log('selectedUser', selection)
 
   const [users, setUsers] = useState<IUser[]>([])
 

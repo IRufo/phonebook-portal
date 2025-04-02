@@ -43,8 +43,6 @@ const Login = () => {
         setCookie('token', response.token, 1)
         setTimeout(async() => {
           const res = await verifyToken()
-          console.log('sdfdsf',res)
-
           if(['Admin', 'Super Admin'].includes(res?.data?.role)){
             navigate('/admin/users/all');
             return

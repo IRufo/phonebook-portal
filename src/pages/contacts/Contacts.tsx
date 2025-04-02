@@ -135,7 +135,6 @@ const Contacts = () => {
   },[searchUser])
 
   useEffect(() => {
-    console.log('activeTab', activeTab)
     if (activeTab === "shared-with-me") {
       _getContactsSharedWithMe()
       return
