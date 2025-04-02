@@ -1,10 +1,10 @@
 import { Button, CloseButton, Dialog, Portal } from "@chakra-ui/react";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 
 type props = {
   title: string;
   content?: ReactNode;
-  confirm: ReactNode;
+  confirm?: ReactNode;
   cancel?: ReactNode;
   open: boolean;
   setOpen: Function;

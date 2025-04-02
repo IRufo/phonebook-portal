@@ -86,7 +86,6 @@ const Register = () => {
                     value={data[key as TRegister ]}
                     type={type}
                   />
-                  <Field.HelperText />
                   <Field.ErrorText>{error?.[key as TRegister]}</Field.ErrorText>
                 </Field.Root>
                 ))

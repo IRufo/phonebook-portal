@@ -11,7 +11,7 @@ import {
 const TopNavbar = () => {
   return (
     <Box background="#27272a" width="100vw" height="60px" padding="4" color="white">
-        <Heading>Admin</Heading>
+        <Heading>Phonebook</Heading>
     </Box>
     // <Drawer.Root size="xs" placement="start" open={true}>
     //   <Drawer.Trigger asChild>

@@ -1,4 +1,4 @@
-import { List, Box, Icon } from "@chakra-ui/react";
+import { List, Box, Icon, HStack, Avatar, Text } from "@chakra-ui/react";
 import React from "react";
 
 type Menu = {
@@ -20,6 +20,18 @@ const Sidebar: React.FC<IMyProps> = (props: IMyProps) => {
             borderColor="gray.150"
             boxShadow="md"
         >
+            <Box background='gray.100' p={2} borderBottomWidth="1px">
+                <HStack gap="3">
+                    <Avatar.Root size="md">
+                        <Avatar.Fallback name="Segun Adebayo" />
+                        {/* <Avatar.Image src="https://bit.ly/sage-adebayo" /> */}
+                    </Avatar.Root>
+                    <Box>
+                        <Text textStyle="md">Segun Adebayo</Text>
+                        <Text textStyle="xs" color="gray.500">Admin</Text>
+                    </Box>
+                </HStack>
+            </Box>
             <List.Root listStyle="none" p="1">
                 {props.menus.map((item) => (
                     <ListElement key={item.text} icon={item.icon} text={item.text} onClick={item.onClick} />

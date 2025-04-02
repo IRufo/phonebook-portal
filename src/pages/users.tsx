@@ -21,7 +21,7 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import { SlPencil, SlTrash, SlCheck, SlPlus, SlClose } from "react-icons/sl";
+import { SlPencil, SlTrash, SlCheck, SlPlus, SlClose, SlReload } from "react-icons/sl";
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   SlUserFollowing,
@@ -58,8 +58,8 @@ const statusIcon = { pending: SlPlus, approved: SlCheck, deleted: SlClose };
 
 type User = {
   id: number,
-  firstName: string,
-  lastName: string,
+  first_name: string,
+  last_name: string,
   email: string,
   status: string
 }
@@ -68,36 +68,36 @@ const items: User[] = [
   {
     id: 1,
     status: "approved",
-    firstName: "Laptop",
-    lastName: "Laptop",
+    first_name: "Laptop",
+    last_name: "Laptop",
     email: "Electronics",
   },
   {
     id: 2,
     status: "deleted",
-    firstName: "Coffee Maker",
-    lastName: "Coffee Maker",
+    first_name: "Coffee Maker",
+    last_name: "Coffee Maker",
     email: "Home Appliances",
   },
   {
     id: 3,
     status: "approved",
-    firstName: "Desk Chair",
-    lastName: "Desk Chair",
+    first_name: "Desk Chair",
+    last_name: "Desk Chair",
     email: "Furniture",
   },
   {
     id: 4,
     status: "pending",
-    firstName: "Smartphone",
-    lastName: "Smartphone",
+    first_name: "Smartphone",
+    last_name: "Smartphone",
     email: "Electronics",
   },
   {
     id: 5,
     status: "approved",
-    firstName: "Headphones",
-    lastName: "Headphones",
+    first_name: "Headphones",
+    last_name: "Headphones",
     email: "Accessories",
   },
 ];
@@ -105,11 +105,12 @@ const items: User[] = [
 
 const Users = () => {
   const [selection, setSelection] = useState<number[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>()
+  const [selectedUser, setSelectedUser] = useState<User>({id: 0, status: '', first_name: '', last_name: '', email: ''})
 
   const [showBulkDeletePopup, setShowBulkDeletePopup] = useState<boolean>(false);
   const [showDeletePopup, setShowDeletePopup] = useState<boolean>(false);
   const [showEditPopup, setShowEditPopup] = useState<boolean>(false);
+  const [showRestorePopup, setShowRestorePopup] = useState<boolean>(false);
 
   const [users, setUsers] = useState<User[]>([])
 
@@ -133,23 +134,34 @@ const Users = () => {
     }
   }, [activeTab])
 
-  useEffect(() => {
-    if (!showDeletePopup && !showEditPopup) {
-      setSelectedUser(null)
-    }
-  }, [showDeletePopup, showEditPopup])
-
   function bulkDelete () {
-    setUsers(users.filter(u => !selection.includes(u.id)))
+    setUsers(users.map(u => {
+      if (selection.includes(u.id)) {
+        u.status = 'deleted'
+      }
+      return u
+    }))
     setSelection([])
   }
 
   function deleteUser() {
-    setUsers(users.filter(u => u.id != (selectedUser || {}).id))
+    setUsers(users.map(u => {
+      if (selectedUser?.id == u.id) {
+        u.status = 'deleted'
+      }
+      return u
+    }))
     setShowDeletePopup(false)
   }
 
   function editUser() {
+    setUsers(users.map(u => {
+      if (selectedUser?.id == u.id) {
+        u.first_name = selectedUser.first_name
+        u.last_name = selectedUser.last_name
+      }
+      return u
+    }))
     setShowEditPopup(false)
   }
 
@@ -157,6 +169,16 @@ const Users = () => {
     navigate(`/admin/users/${newTab}`)
     setSelection([])
     setActiveTab(newTab)
+  }
+
+  function restoreUser () {
+    setUsers(users.map(u => {
+      if (selectedUser?.id == u.id) {
+        u.status = 'approved'
+      }
+      return u
+    }))
+    setShowRestorePopup(false)
   }
 
   const rows = users.map((item) => (
@@ -167,7 +189,7 @@ const Users = () => {
       _hover={{ bg: "gray.50" }}
     >
       <Table.Cell>
-        <Checkbox.Root
+        {![activeTab, item.status].includes('deleted') ? <Checkbox.Root
           size="sm"
           top="0.5"
           aria-label="Select row"
@@ -182,11 +204,11 @@ const Users = () => {
         >
           <Checkbox.HiddenInput />
           <Checkbox.Control />
-        </Checkbox.Root>
+        </Checkbox.Root>: ''}
       </Table.Cell>
       <Table.Cell>
         <Link variant="underline" colorPalette="teal">
-          {item.firstName} {item.lastName}
+          {item.first_name} {item.last_name}
         </Link>
       </Table.Cell>
       <Table.Cell>{item.email}</Table.Cell>
@@ -211,24 +233,38 @@ const Users = () => {
             variant="subtle"
             rounded="full"
             onClick={() => {
-              setSelectedUser(item);
+              setSelectedUser(item)
               setShowEditPopup(true);
             }}
             >
             <SlPencil />
           </IconButton>
+          {item.status !== 'deleted' ? 
           <IconButton
             p="4px"
             size="xs"
             variant="subtle"
             rounded="full"
             onClick={() => {
-              setSelectedUser(item);
-              setShowDeletePopup(true);
+              setSelectedUser(item)
+              setShowDeletePopup(true)
             }}
           >
             <SlTrash />
-          </IconButton>
+          </IconButton>: 
+            <IconButton
+              p="4px"
+              size="xs"
+              variant="subtle"
+              rounded="full"
+              onClick={() => {
+                setSelectedUser(item)
+                setShowRestorePopup(true)
+              }}
+            >
+              <SlReload/>
+            </IconButton>
+          }
         </Flex>
       </Table.Cell>
     </Table.Row>
@@ -241,20 +277,20 @@ const Users = () => {
         <Table.Header>
           <Table.Row>
             <Table.ColumnHeader w="6">
-              <Checkbox.Root
+              {activeTab !== 'deleted' ? <Checkbox.Root
                 size="sm"
                 top="0.5"
                 aria-label="Select all rows"
                 checked={indeterminate ? "indeterminate" : selection.length > 0}
                 onCheckedChange={(changes) => {
                   setSelection(
-                    changes.checked ? users.map((item) => item.id) : []
+                    changes.checked ? users.filter(i => i.status !== 'deleted').map((item) => item.id) : []
                   );
                 }}
               >
                 <Checkbox.HiddenInput />
                 <Checkbox.Control />
-              </Checkbox.Root>
+              </Checkbox.Root>: ''}
             </Table.ColumnHeader>
             <Table.ColumnHeader>Name</Table.ColumnHeader>
             <Table.ColumnHeader>Email</Table.ColumnHeader>
@@ -305,6 +341,13 @@ const Users = () => {
         setOpen={setShowDeletePopup}
       ></Popup>
 
+      <Popup
+        title={"Restore user"}
+        content={<Text>Are you sure want to restore this user?</Text>}
+        confirm={<Button onClick={() => restoreUser()}>Delete</Button>}
+        open={showRestorePopup}
+        setOpen={setShowRestorePopup}
+      ></Popup>
 
       <Popup
         title={"Edit user"}
@@ -316,7 +359,7 @@ const Users = () => {
                   First name
                   <Field.RequiredIndicator />
                 </Field.Label>
-                <Input placeholder="John" value={(selectedUser || {}).firstName}/>
+                <Input placeholder="John" value={selectedUser?.first_name} onChange={e => setSelectedUser({...selectedUser, first_name: e.target.value})}/>
                 <Field.ErrorText>First name is required</Field.ErrorText>
               </Field.Root>
 
@@ -325,7 +368,7 @@ const Users = () => {
                   Last name
                   <Field.RequiredIndicator />
                 </Field.Label>
-                <Input placeholder="Due" value={(selectedUser || {}).lastName}/>
+                <Input placeholder="Due" value={selectedUser?.last_name} onChange={e => setSelectedUser({...selectedUser, last_name: e.target.value})}/>
                 <Field.ErrorText>Last name is required</Field.ErrorText>
               </Field.Root>
             </Fieldset.Content>
