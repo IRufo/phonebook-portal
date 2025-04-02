@@ -1,4 +1,3 @@
-"use client";
 import Menu from "../../components/ui/menu";
 import Popup from "../../components/ui/popup";
 import {
@@ -14,7 +13,7 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { useState, useEffect, useMemo } from "react";
-import { SlBell, SlPlus, SlTrash, SlVolume1 } from "react-icons/sl";
+import { SlPlus, SlTrash } from "react-icons/sl";
 import { useParams, useNavigate } from 'react-router-dom';
 import { IUser } from "./types";
 import { tabs } from "./config";
