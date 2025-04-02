@@ -14,7 +14,7 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import { SlBell, SlTrash, SlVolume1 } from "react-icons/sl";
+import { SlBell, SlPlus, SlTrash, SlVolume1 } from "react-icons/sl";
 import { useParams, useNavigate } from 'react-router-dom';
 import { IUser } from "./types";
 import { tabs } from "./config";
@@ -32,7 +32,7 @@ const Users = () => {
   const [showApprovePopup, setShowApprovePopup] = useState<boolean>(false);
   const [showRestorePopup, setShowRestorePopup] = useState<boolean>(false);
   const [showBulkApprovePopup, setShowBulkApprovePopup] = useState<boolean>(false);
-  console.log('selectedUser', selectedUser)
+  console.log('selectedUser', selection)
 
   const [users, setUsers] = useState<IUser[]>([])
 
@@ -50,7 +50,7 @@ const Users = () => {
       deleted: 'Deleted',
     };
     let response;
-    if (_status) {
+    if (_status && _status !== 'all') {
       const status = statusMap[_status]
       response = await getUsersByStatus(status);
     } else {
@@ -76,14 +76,14 @@ const Users = () => {
     fetchUsers(activeTab)
   }, [activeTab])
 
-  const bulkDelete = () => {
-    setUsers(users.map(u => {
-      if (selection.includes(u.id)) {
-        u.status = 'deleted'
-      }
-      return u
-    }))
+  const bulkDelete = async() => {
+    console.log('data',selectedUser)
+    await Promise.all(
+      selection.map((id) => deleteUser(id))
+    )
     setSelection([])
+    fetchUsers(activeTab)
+    setShowBulkDeletePopup(false)
   }
 
   const removeUser = async() => {
@@ -122,8 +122,15 @@ const Users = () => {
     setShowRestorePopup(false)
   }
 
-  const bulkApprove = () => {
+  const bulkApprove = async() => {
     console.log('data',selectedUser)
+    await Promise.all(
+      selection.map((id) => activateUser(id))
+    )
+    setSelection([])
+    
+
+    setShowBulkApprovePopup(false)
   }
 
   return (
@@ -170,14 +177,14 @@ const Users = () => {
                 {selection.length} selected
               </ActionBar.SelectionTrigger>
               <ActionBar.Separator />
-              <Button
+              {activeTab == 'pending' && <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowBulkApprovePopup(true)}
               >
                 Approve
-                <SlBell />
-              </Button>
+                <SlPlus/>
+              </Button>}
               <ActionBar.Separator />
               <Button
                 variant="outline"
@@ -193,9 +200,9 @@ const Users = () => {
       </ActionBar.Root>
 
       <Popup
-        title={"Delete users"}
+        title={"Approve users"}
         content={<Text>Are you sure want to approve all the selected user(s)?</Text>}
-        confirm={<Button onClick={() => bulkApprove()}>Delete</Button>}
+        confirm={<Button onClick={() => bulkApprove()}>Approve</Button>}
         open={showBulkApprovePopup}
         setOpen={setShowBulkApprovePopup}
       ></Popup>

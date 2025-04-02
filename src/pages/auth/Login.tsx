@@ -2,7 +2,7 @@ import { Box, Button, Field , Input, VStack, Heading, Fieldset } from "@chakra-u
 import { useState } from "react";
 import { loginFields } from "./config";
 import { IErrorLogin, TLogin } from "./types";
-import { loginUser } from "../../services/authService";
+import { loginUser, verifyToken } from "../../services/authService";
 import { setCookie } from "../../utils/cacheCookie";
 import { validateRequiredFields } from "../../utils/requiredFieldsValidation";
 import { useNavigate } from 'react-router-dom';
@@ -41,6 +41,11 @@ const Login = () => {
 
       if (response.success) {
         setCookie('token', response.token, 1)
+        const res = await verifyToken()
+        if(['Admin', 'Super Admin'].includes(res.data.role)){
+          navigate('/admin/users/all');
+          return
+        }
         navigate('/dashboard');
       } else {
         setServerError(response.message)
