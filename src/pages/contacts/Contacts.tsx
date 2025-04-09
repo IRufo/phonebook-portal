@@ -202,7 +202,6 @@ const Contacts = () => {
   }
 
   const _unShareContact = async() => {
-    console.log('sdfsdfa', selectedContact)
     await unshareContact({contact_id: selectedContact?.id as string, owner_id: selectedContact?.owner_id as string} )
     _common()
     setShowUnsharePopup(false)
