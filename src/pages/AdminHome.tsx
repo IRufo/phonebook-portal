@@ -18,7 +18,7 @@ const AdminDashboard = () => {
       {
           text: "Users",
           icon: SlUser,
-          onClick: () => alert('redirect to users list')
+          onClick: () => null
       },
       {
           text: "Log out",
