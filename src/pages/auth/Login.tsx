@@ -48,7 +48,7 @@ const Login = () => {
             return;
           }
           navigate('/contacts/my-contacts');
-        }, 1000);
+        }, 2000); // not a good practice but this is to waite the setting of token in local cookie
       } else {
         setServerError(response.message);
       }
