@@ -6,7 +6,7 @@ import {
 import { passwordStrength } from 'check-password-strength'
 import { useState } from "react";
 import { registerUser } from "../../services/authService";
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { registerFields } from "./config";
 import { IErrorRegister, TRegister } from "./types";
 import { validateRequiredFields } from "../../utils/requiredFieldsValidation";
@@ -127,6 +127,11 @@ const Register = () => {
 
             <Button colorScheme="blue" width="100%" onClick={handleRegister}>Register</Button>
           </Fieldset.Root>
+          <Box mt={4} textAlign="right">
+          <Link to="/login">
+            <Button colorScheme="blue" variant="link">Login</Button>
+          </Link>
+        </Box>
         </Box>
     </Box>
   );

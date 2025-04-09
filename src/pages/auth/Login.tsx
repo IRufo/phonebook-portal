@@ -1,11 +1,11 @@
-import { Box, Button, Field , Input, VStack, Heading, Fieldset } from "@chakra-ui/react";
+import { Box, Button, Field, Input, VStack, Heading, Fieldset } from "@chakra-ui/react";
 import { useState } from "react";
 import { loginFields } from "./config";
 import { IErrorLogin, TLogin } from "./types";
 import { loginUser, verifyToken } from "../../services/authService";
 import { setCookie } from "../../utils/cacheCookie";
 import { validateRequiredFields } from "../../utils/requiredFieldsValidation";
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [data, setData] = useState({ email: '', password: '' });
@@ -19,79 +19,81 @@ const Login = () => {
   
     setError((prev) => {
       if (prev) {
-        const { [key as TLogin]: ommitted, ...rest } = prev;
+        const { [key as TLogin]: omitted, ...rest } = prev;
         return rest;
       }
       return null;
     });
     if(serverError){
-      setServerError(null)
+      setServerError(null);
     }
   };
 
   const handleLogin = async () => {
     try {
-      const _error = validateRequiredFields(data, ['email', 'password'])
+      const _error = validateRequiredFields(data, ['email', 'password']);
       if(Object.entries(_error).length) {
-        setError(_error)
-        return
+        setError(_error);
+        return;
       }
       const response = await loginUser(data);
       console.log('Login successful:', response);
 
       if (response.success) {
-        setCookie('token', response.token, 1)
+        setCookie('token', response.token, 1);
         setTimeout(async() => {
-          const res = await verifyToken()
+          const res = await verifyToken();
           if(['Admin', 'Super Admin'].includes(res?.data?.role)){
             navigate('/admin/users/all');
-            return
+            return;
           }
           navigate('/contacts/my-contacts');
-
-        },1000 )
+        }, 1000);
       } else {
-        setServerError(response.message)
+        setServerError(response.message);
       }
     } catch (err) {
-     console.error(err)
+      console.error(err);
     }
   };
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-        <Box p={6} boxShadow="lg" borderRadius="md" width="400px">
-          <Heading mb={4} textAlign="center">Login</Heading>
-          <Fieldset.Root invalid>
+      <Box p={6} boxShadow="lg" borderRadius="md" width="400px">
+        <Heading mb={4} textAlign="center">Login</Heading>
+        <Fieldset.Root invalid>
           <Fieldset.Content>
             {
-              loginFields.map(({key, label, required, type}) => (
-                <Field.Root required = {required} invalid = {!!error?.[key as TLogin]}>
-                <Field.Label>
-                  {label}
-                  <Field.RequiredIndicator />
-                </Field.Label>
-                <Input
-                  onChange={(e) => {
-                    handleChange(key, e.target.value) 
-                  }}
-                  value={data[key as TLogin]}
-                  type={type}
-                />
-                <Field.HelperText />
-                <Field.ErrorText>{error?.[key as TLogin]}</Field.ErrorText>
-              </Field.Root>
+              loginFields.map(({ key, label, required, type }) => (
+                <Field.Root key={key} required={required} invalid={!!error?.[key as TLogin]}>
+                  <Field.Label>
+                    {label}
+                    <Field.RequiredIndicator />
+                  </Field.Label>
+                  <Input
+                    onChange={(e) => handleChange(key, e.target.value)}
+                    value={data[key as TLogin]}
+                    type={type}
+                  />
+                  <Field.HelperText />
+                  <Field.ErrorText>{error?.[key as TLogin]}</Field.ErrorText>
+                </Field.Root>
               ))
             }
             <Fieldset.ErrorText>
               {serverError}
             </Fieldset.ErrorText>
-               </Fieldset.Content>
-            <Button colorScheme="blue" width="100%" onClick={handleLogin}>Login</Button>
-         </Fieldset.Root>
+          </Fieldset.Content>
+          <Button colorScheme="blue" width="100%" onClick={handleLogin}>Login</Button>
+        </Fieldset.Root>
+        <Box mt={4} textAlign="right">
+          <Link to="/register">
+            <Button colorScheme="blue" variant="link">Register</Button>
+          </Link>
         </Box>
+      </Box>
     </Box>
   );
 };
 
-export default Login
+export default Login;

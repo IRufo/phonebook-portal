@@ -1,3 +1,4 @@
+import React from "react";
 import { Grid, GridItem, Text, Button } from "@chakra-ui/react";
 import Sidebar from '../components/ui/sidebar'
 import TopNavbar from '../components/ui/topNavbar'
